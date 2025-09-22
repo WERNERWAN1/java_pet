@@ -8,10 +8,10 @@
 
 后台地址： http://pet.gitapp.cn/admin
 
-后台管理帐号：
 
-用户名：admin123
-密码：admin123
+### 视频讲解
+
+[https://youtu.be/KlW8u1C4TaA](https://youtu.be/KlW8u1C4TaA)
 
 
 ### 功能介绍
@@ -86,6 +86,9 @@ npm run dev
 ![](https://raw.githubusercontent.com/geeeeeeeek/java_pet/master/server/upload/image/b.png)
 
 
+### 视频讲解
+
+[https://youtu.be/KlW8u1C4TaA](https://youtu.be/KlW8u1C4TaA)
 
 
 ### 参考论文
