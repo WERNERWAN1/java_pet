@@ -12,4 +12,7 @@ public interface ThingWishService {
     void deleteThingWish(String id);
 
     ThingWish getThingWish(String userId, String thingId);
+    
+    // 添加愿望
+    boolean addWish(ThingWish thingWish);
 }

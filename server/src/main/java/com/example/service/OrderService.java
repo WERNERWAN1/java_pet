@@ -13,4 +13,7 @@ public interface OrderService {
     void updateOrder(Order order);
 
     List<Order> getUserOrderList(String userId, String status);
+    
+    // 取消订单
+    void cancelOrder(Long orderId);
 }

@@ -5,6 +5,7 @@ import com.example.common.ResponeCode;
 import com.example.entity.Comment;
 import com.example.permission.Access;
 import com.example.permission.AccessLevel;
+import com.example.service.BatchDeleteService;
 import com.example.service.CommentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,9 @@ public class CommentController {
 
     @Autowired
     CommentService service;
+    
+    @Autowired
+    BatchDeleteService batchDeleteService;
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public APIResponse list(){
@@ -57,12 +61,7 @@ public class CommentController {
     @Access(level = AccessLevel.ADMIN)
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     public APIResponse delete(String ids){
-        System.out.println("ids===" + ids);
-        // 批量删除
-        String[] arr = ids.split(",");
-        for (String id : arr) {
-            service.deleteComment(id);
-        }
+        batchDeleteService.batchDelete(ids, service::deleteComment);
         return new APIResponse(ResponeCode.SUCCESS, "删除成功");
     }
 
@@ -77,11 +76,8 @@ public class CommentController {
     @RequestMapping(value = "/like", method = RequestMethod.POST)
     @Transactional
     public APIResponse like(String id) throws IOException {
-        Comment commentBean = service.getCommentDetail(id);
-        int likeCount = Integer.parseInt(commentBean.getLikeCount()) + 1;
-        commentBean.setLikeCount(String.valueOf(likeCount));
-        service.updateComment(commentBean);
-        return new APIResponse(ResponeCode.SUCCESS, "更新成功");
+        service.likeComment(id);
+        return new APIResponse(ResponeCode.SUCCESS, "点赞成功");
     }
 
 }

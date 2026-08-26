@@ -4,7 +4,7 @@ import com.example.common.APIResponse;
 import com.example.common.ResponeCode;
 import com.example.entity.Address;
 import com.example.service.AddressService;
-import lombok.extern.slf4j.Slf4j;
+import com.example.service.BatchDeleteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,6 @@ import java.util.List;
  * @author wanchun
  * @email email
  */
-@Slf4j
 @RestController
 @RequestMapping("/address")
 public class AddressController {
@@ -28,6 +27,9 @@ public class AddressController {
 
     @Autowired
     AddressService service;
+    
+    @Autowired
+    BatchDeleteService batchDeleteService;
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public APIResponse list(String userId){
@@ -38,40 +40,21 @@ public class AddressController {
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @Transactional
     public APIResponse create(Address address) throws IOException {
-        if(address.getDef().equals("1")){
-            // 其它置0
-            List<Address> list =  service.getAddressList(address.getUserId());
-            for(Address address1: list) {
-                address1.setDef("0");
-                service.updateAddress(address1);
-            }
-        }
+        // Service内部处理默认地址逻辑
         service.createAddress(address);
         return new APIResponse(ResponeCode.SUCCESS, "创建成功");
     }
 
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     public APIResponse delete(String ids){
-        log.info("ids===" + ids);
-        // 批量删除
-        String[] arr = ids.split(",");
-        for (String id : arr) {
-            service.deleteAddress(id);
-        }
+        batchDeleteService.batchDelete(ids, service::deleteAddress);
         return new APIResponse(ResponeCode.SUCCESS, "删除成功");
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     @Transactional
     public APIResponse update(Address address) throws IOException {
-        if(address.getDef().equals("1")){
-            // 其它置0
-            List<Address> list =  service.getAddressList(address.getUserId());
-            for(Address address1: list) {
-                address1.setDef("0");
-                service.updateAddress(address1);
-            }
-        }
+        // Service内部处理默认地址逻辑
         service.updateAddress(address);
         return new APIResponse(ResponeCode.SUCCESS, "更新成功");
     }

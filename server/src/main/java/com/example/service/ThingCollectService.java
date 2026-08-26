@@ -11,4 +11,7 @@ public interface ThingCollectService {
     void createThingCollect(ThingCollect thingCollect);
     void deleteThingCollect(String id);
     ThingCollect getThingCollect(String userId, String thingId);
+    
+    // 添加收藏
+    boolean addCollect(ThingCollect thingCollect);
 }

@@ -6,7 +6,6 @@ import com.example.entity.ThingCollect;
 import com.example.permission.Access;
 import com.example.permission.AccessLevel;
 import com.example.service.ThingCollectService;
-import com.example.service.ThingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,20 +27,17 @@ public class ThingCollectController {
     @Autowired
     ThingCollectService thingCollectService;
 
-    @Autowired
-    ThingService thingService;
-
     @Access(level = AccessLevel.LOGIN)
     @RequestMapping(value = "/collect", method = RequestMethod.POST)
     @Transactional
     public APIResponse collect(ThingCollect thingCollect) throws IOException {
-        if(thingCollectService.getThingCollect(thingCollect.getUserId(), thingCollect.getThingId()) != null){
+        // Service内部处理收藏和更新计数
+        boolean success = thingCollectService.addCollect(thingCollect);
+        if (success) {
+            return new APIResponse(ResponeCode.SUCCESS, "收藏成功");
+        } else {
             return new APIResponse(ResponeCode.SUCCESS, "您已收藏过了");
-        }else {
-            thingCollectService.createThingCollect(thingCollect);
-            thingService.addCollectCount(thingCollect.getThingId());
         }
-        return new APIResponse(ResponeCode.SUCCESS, "收藏成功");
     }
 
     @Access(level = AccessLevel.LOGIN)

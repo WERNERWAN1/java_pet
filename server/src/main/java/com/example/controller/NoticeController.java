@@ -5,6 +5,7 @@ import com.example.common.ResponeCode;
 import com.example.entity.Notice;
 import com.example.permission.Access;
 import com.example.permission.AccessLevel;
+import com.example.service.BatchDeleteService;
 import com.example.service.NoticeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,9 @@ public class NoticeController {
 
     @Autowired
     NoticeService service;
+    
+    @Autowired
+    BatchDeleteService batchDeleteService;
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public APIResponse list(){
@@ -43,12 +47,7 @@ public class NoticeController {
     @Access(level = AccessLevel.ADMIN)
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     public APIResponse delete(String ids){
-        System.out.println("ids===" + ids);
-        // 批量删除
-        String[] arr = ids.split(",");
-        for (String id : arr) {
-            service.deleteNotice(id);
-        }
+        batchDeleteService.batchDelete(ids, service::deleteNotice);
         return new APIResponse(ResponeCode.SUCCESS, "删除成功");
     }
 

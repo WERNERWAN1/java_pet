@@ -5,6 +5,7 @@ import com.example.common.ResponeCode;
 import com.example.entity.Order;
 import com.example.permission.Access;
 import com.example.permission.AccessLevel;
+import com.example.service.BatchDeleteService;
 import com.example.service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,9 @@ public class OrderController {
 
     @Autowired
     OrderService service;
+    
+    @Autowired
+    BatchDeleteService batchDeleteService;
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public APIResponse list(){
@@ -50,12 +54,7 @@ public class OrderController {
     @Access(level = AccessLevel.ADMIN)
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     public APIResponse delete(String ids){
-        System.out.println("ids===" + ids);
-        // 批量删除
-        String[] arr = ids.split(",");
-        for (String id : arr) {
-            service.deleteOrder(id);
-        }
+        batchDeleteService.batchDelete(ids, service::deleteOrder);
         return new APIResponse(ResponeCode.SUCCESS, "删除成功");
     }
 
@@ -70,10 +69,7 @@ public class OrderController {
     @RequestMapping(value = "/cancelOrder", method = RequestMethod.POST)
     @Transactional
     public APIResponse cancelOrder(Long id) throws IOException {
-        Order order = new Order();
-        order.setId(id);
-        order.setStatus("7"); // 7=取消
-        service.updateOrder(order);
+        service.cancelOrder(id);
         return new APIResponse(ResponeCode.SUCCESS, "取消成功");
     }
 
@@ -81,10 +77,7 @@ public class OrderController {
     @RequestMapping(value = "/cancelUserOrder", method = RequestMethod.POST)
     @Transactional
     public APIResponse cancelUserOrder(Long id) throws IOException {
-        Order order = new Order();
-        order.setId(id);
-        order.setStatus("7"); // 7=取消
-        service.updateOrder(order);
+        service.cancelOrder(id);
         return new APIResponse(ResponeCode.SUCCESS, "取消成功");
     }
 

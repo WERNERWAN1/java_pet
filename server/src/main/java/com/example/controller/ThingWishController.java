@@ -5,7 +5,6 @@ import com.example.common.ResponeCode;
 import com.example.entity.ThingWish;
 import com.example.permission.Access;
 import com.example.permission.AccessLevel;
-import com.example.service.ThingService;
 import com.example.service.ThingWishService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,20 +27,17 @@ public class ThingWishController {
     @Autowired
     ThingWishService thingWishService;
 
-    @Autowired
-    ThingService thingService;
-
     @Access(level = AccessLevel.LOGIN)
     @RequestMapping(value = "/wish", method = RequestMethod.POST)
     @Transactional
     public APIResponse wish(ThingWish thingWish) throws IOException {
-        if(thingWishService.getThingWish(thingWish.getUserId(), thingWish.getThingId()) != null){
+        // Service内部处理添加愿望和更新计数
+        boolean success = thingWishService.addWish(thingWish);
+        if (success) {
+            return new APIResponse(ResponeCode.SUCCESS, "添加成功");
+        } else {
             return new APIResponse(ResponeCode.SUCCESS, "您已添加过了");
-        }else {
-            thingWishService.createThingWish(thingWish);
-            thingService.addWishCount(thingWish.getThingId());
         }
-        return new APIResponse(ResponeCode.SUCCESS, "添加成功");
     }
 
     @Access(level = AccessLevel.LOGIN)

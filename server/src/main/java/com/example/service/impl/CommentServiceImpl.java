@@ -50,4 +50,14 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     public List<Comment> getUserCommentList(String userId) {
         return mapper.selectUserCommentList(userId);
     }
+    
+    @Override
+    public void likeComment(String commentId) {
+        Comment comment = getCommentDetail(commentId);
+        if (comment != null) {
+            int likeCount = Integer.parseInt(comment.getLikeCount()) + 1;
+            comment.setLikeCount(String.valueOf(likeCount));
+            mapper.updateById(comment);
+        }
+    }
 }

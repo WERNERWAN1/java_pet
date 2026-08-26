@@ -6,21 +6,19 @@ import com.example.entity.Ad;
 import com.example.permission.Access;
 import com.example.permission.AccessLevel;
 import com.example.service.AdService;
+import com.example.service.BatchDeleteService;
+import com.example.service.FileUploadService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author wanchun
@@ -34,9 +32,12 @@ public class AdController {
 
     @Autowired
     AdService service;
-
-    @Value("${File.uploadPath}")
-    private String uploadPath;
+    
+    @Autowired
+    FileUploadService fileUploadService;
+    
+    @Autowired
+    BatchDeleteService batchDeleteService;
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public APIResponse list(){
@@ -48,9 +49,10 @@ public class AdController {
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @Transactional
     public APIResponse create(Ad ad) throws IOException {
-        String image = saveAd(ad);
-        if(!StringUtils.isEmpty(image)) {
-            ad.image = image;
+        // 处理图片上传
+        String imageUrl = fileUploadService.uploadAdImage(ad.getImageFile());
+        if(!StringUtils.isEmpty(imageUrl)) {
+            ad.setImage(imageUrl);
         }
 
         service.createAd(ad);
@@ -60,12 +62,7 @@ public class AdController {
     @Access(level = AccessLevel.ADMIN)
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     public APIResponse delete(String ids){
-        System.out.println("ids===" + ids);
-        // 批量删除
-        String[] arr = ids.split(",");
-        for (String id : arr) {
-            service.deleteAd(id);
-        }
+        batchDeleteService.batchDelete(ids, service::deleteAd);
         return new APIResponse(ResponeCode.SUCCESS, "删除成功");
     }
 
@@ -73,34 +70,14 @@ public class AdController {
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     @Transactional
     public APIResponse update(Ad ad) throws IOException {
-        String image = saveAd(ad);
-        if(!StringUtils.isEmpty(image)) {
-            ad.image = image;
+        // 处理图片上传
+        String imageUrl = fileUploadService.uploadAdImage(ad.getImageFile());
+        if(!StringUtils.isEmpty(imageUrl)) {
+            ad.setImage(imageUrl);
         }
 
         service.updateAd(ad);
         return new APIResponse(ResponeCode.SUCCESS, "更新成功");
     }
 
-    public String saveAd(Ad ad) throws IOException {
-        MultipartFile file = ad.getImageFile();
-        String newFileName = null;
-        if(file !=null && !file.isEmpty()) {
-
-            // 存文件
-            String oldFileName = file.getOriginalFilename();
-            String randomStr = UUID.randomUUID().toString();
-            newFileName = randomStr + oldFileName.substring(oldFileName.lastIndexOf("."));
-            String filePath = uploadPath + File.separator + "image" + File.separator + newFileName;
-            File destFile = new File(filePath);
-            if(!destFile.getParentFile().exists()){
-                destFile.getParentFile().mkdirs();
-            }
-            file.transferTo(destFile);
-        }
-        if(!StringUtils.isEmpty(newFileName)) {
-            ad.image = newFileName;
-        }
-        return newFileName;
-    }
 }

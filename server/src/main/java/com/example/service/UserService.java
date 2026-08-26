@@ -18,4 +18,17 @@ public interface UserService {
     User getUserByUserName(String username);
 
     User getUserDetail(String userId);
+    
+    // 登录验证
+    User loginAdminUser(String username, String password);
+    User loginUser(String username, String password);
+    
+    // 用户注册
+    boolean registerUser(User user);
+    
+    // 修改密码
+    boolean updatePassword(String userId, String oldPassword, String newPassword);
+    
+    // 更新用户信息
+    boolean updateUserInfo(User user);
 }

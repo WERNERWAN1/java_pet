@@ -5,8 +5,12 @@ server.servlet.context-path: /api
 BASE_LOCATION: D:\aliyun_workspace\java_pet
 DB_NAME: java_pet
 
-
-
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://10.10.80.98:3307/java_pet?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root_pwd!23
 
 mybatis:
   configuration:

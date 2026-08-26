@@ -15,4 +15,7 @@ public interface CommentService {
     List<Comment> getThingCommentList(String thingId, String order);
 
     List<Comment> getUserCommentList(String userId);
+    
+    // 点赞
+    void likeComment(String commentId);
 }

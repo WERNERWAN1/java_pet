@@ -3,7 +3,9 @@ package com.example.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.mapper.ThingCollectMapper;
+import com.example.mapper.ThingMapper;
 import com.example.service.ThingCollectService;
+import com.example.entity.Thing;
 import com.example.entity.ThingCollect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,9 @@ import java.util.Map;
 class ThingCollectServiceImpl extends ServiceImpl<ThingCollectMapper, ThingCollect> implements ThingCollectService {
     @Autowired
     ThingCollectMapper mapper;
+
+    @Autowired
+    ThingMapper thingMapper;
 
     @Override
     public List<Map> getThingCollectList(String userId) {
@@ -37,5 +42,24 @@ class ThingCollectServiceImpl extends ServiceImpl<ThingCollectMapper, ThingColle
         queryWrapper.eq("thing_id", thingId)
                 .eq("user_id", userId);
         return mapper.selectOne(queryWrapper);
+    }
+    
+    @Override
+    public boolean addCollect(ThingCollect thingCollect) {
+        // 检查是否已收藏
+        if (getThingCollect(thingCollect.getUserId(), thingCollect.getThingId()) != null) {
+            return false;
+        }
+        
+        // 创建收藏
+        createThingCollect(thingCollect);
+        
+        // 更新收藏计数
+        Thing thing = thingMapper.selectById(thingCollect.getThingId());
+        if (thing != null) {
+            thing.setCollectCount(String.valueOf(Integer.parseInt(thing.getCollectCount()) + 1));
+            thingMapper.updateById(thing);
+        }
+        return true;
     }
 }

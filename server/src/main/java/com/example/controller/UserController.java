@@ -5,21 +5,19 @@ import com.example.common.ResponeCode;
 import com.example.entity.User;
 import com.example.permission.Access;
 import com.example.permission.AccessLevel;
+import com.example.service.BatchDeleteService;
+import com.example.service.FileUploadService;
 import com.example.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
+
 /**
  * @author wanchun
  * @email email
@@ -30,13 +28,14 @@ public class UserController {
 
     private final static Logger logger = LoggerFactory.getLogger(UserController.class);
 
-    String salt = "abcd1234";
-
     @Autowired
     UserService userService;
-
-    @Value("${File.uploadPath}")
-    private String uploadPath;
+    
+    @Autowired
+    FileUploadService fileUploadService;
+    
+    @Autowired
+    BatchDeleteService batchDeleteService;
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public APIResponse list(String keyword){
@@ -53,8 +52,7 @@ public class UserController {
     // 后台用户登录
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public APIResponse login(User user){
-        user.setPassword(DigestUtils.md5DigestAsHex((user.getPassword() + salt).getBytes()));
-        User responseUser =  userService.getAdminUser(user);
+        User responseUser = userService.loginAdminUser(user.getUsername(), user.getPassword());
         if(responseUser != null) {
             return new APIResponse(ResponeCode.SUCCESS, "查询成功", responseUser);
         }else {
@@ -65,8 +63,7 @@ public class UserController {
     // 普通用户登录
     @RequestMapping(value = "/userLogin", method = RequestMethod.POST)
     public APIResponse userLogin(User user){
-        user.setPassword(DigestUtils.md5DigestAsHex((user.getPassword() + salt).getBytes()));
-        User responseUser =  userService.getNormalUser(user);
+        User responseUser = userService.loginUser(user.getUsername(), user.getPassword());
         if(responseUser != null) {
             return new APIResponse(ResponeCode.SUCCESS, "查询成功", responseUser);
         }else {
@@ -78,37 +75,27 @@ public class UserController {
     @RequestMapping(value = "/userRegister", method = RequestMethod.POST)
     @Transactional
     public APIResponse userRegister(User user) throws IOException {
-
         if (!StringUtils.isEmpty(user.getUsername())
                 && !StringUtils.isEmpty(user.getPassword())
                 && !StringUtils.isEmpty(user.getRePassword())) {
-            // 查重
-            if(userService.getUserByUserName(user.getUsername()) != null) {
-                return new APIResponse(ResponeCode.FAIL, "用户名重复");
-            }
             // 验证密码
             if(!user.getPassword().equals(user.getRePassword())) {
                 return new APIResponse(ResponeCode.FAIL, "密码不一致");
             }
-            String md5Str = DigestUtils.md5DigestAsHex((user.getPassword() + salt).getBytes());
-            // 设置密码
-            user.setPassword(md5Str);
-            md5Str = DigestUtils.md5DigestAsHex((user.getUsername() + salt).getBytes());
-            // 设置token
-            user.setToken(md5Str);
-
-            String avatar = saveAvatar(user);
+            
+            // 处理头像上传
+            String avatar = fileUploadService.uploadAvatar(user.getAvatarFile());
             if(!StringUtils.isEmpty(avatar)) {
-                user.avatar = avatar;
+                user.setAvatar(avatar);
             }
-            // 设置角色
-            user.setRole(String.valueOf(User.NormalUser));
-            // 设置状态
-            user.setStatus("0");
-            user.setCreateTime(String.valueOf(System.currentTimeMillis()));
-
-            userService.createUser(user);
-            return new APIResponse(ResponeCode.SUCCESS, "创建成功");
+            
+            // 注册用户（Service内部处理密码加密和token生成）
+            boolean success = userService.registerUser(user);
+            if (success) {
+                return new APIResponse(ResponeCode.SUCCESS, "创建成功");
+            } else {
+                return new APIResponse(ResponeCode.FAIL, "用户名重复");
+            }
         }
         return new APIResponse(ResponeCode.FAIL, "创建失败");
     }
@@ -117,26 +104,20 @@ public class UserController {
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @Transactional
     public APIResponse create(User user) throws IOException {
-
-        if (!StringUtils.isEmpty(user.getUsername()) || !StringUtils.isEmpty(user.getPassword())) {
-            // 查重
-            if(userService.getUserByUserName(user.getUsername()) != null) {
+        if (!StringUtils.isEmpty(user.getUsername()) && !StringUtils.isEmpty(user.getPassword())) {
+            // 处理头像上传
+            String avatar = fileUploadService.uploadAvatar(user.getAvatarFile());
+            if(!StringUtils.isEmpty(avatar)) {
+                user.setAvatar(avatar);
+            }
+            
+            // 创建用户（Service内部处理密码加密和token生成）
+            boolean success = userService.registerUser(user);
+            if (success) {
+                return new APIResponse(ResponeCode.SUCCESS, "创建成功");
+            } else {
                 return new APIResponse(ResponeCode.FAIL, "用户名重复");
             }
-            String md5Str = DigestUtils.md5DigestAsHex((user.getPassword() + salt).getBytes());
-            // 设置密码
-            user.setPassword(md5Str);
-            md5Str = DigestUtils.md5DigestAsHex((user.getUsername() + salt).getBytes());
-            // 设置token
-            user.setToken(md5Str);
-            user.setCreateTime(String.valueOf(System.currentTimeMillis()));
-
-            String avatar = saveAvatar(user);
-            if(!StringUtils.isEmpty(avatar)) {
-                user.avatar = avatar;
-            }
-            userService.createUser(user);
-            return new APIResponse(ResponeCode.SUCCESS, "创建成功");
         }
         return new APIResponse(ResponeCode.FAIL, "创建失败");
     }
@@ -144,12 +125,7 @@ public class UserController {
     @Access(level = AccessLevel.ADMIN)
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     public APIResponse delete(String ids){
-        System.out.println("ids===" + ids);
-        // 批量删除
-        String[] arr = ids.split(",");
-        for (String id : arr) {
-            userService.deleteUser(id);
-        }
+        batchDeleteService.batchDelete(ids, userService::deleteUser);
         return new APIResponse(ResponeCode.SUCCESS, "删除成功");
     }
 
@@ -159,12 +135,12 @@ public class UserController {
     public APIResponse update(User user) throws IOException {
         // update不能修改密码，故置空
         user.setPassword(null);
-        String avatar = saveAvatar(user);
+        // 处理头像上传
+        String avatar = fileUploadService.uploadAvatar(user.getAvatarFile());
         if(!StringUtils.isEmpty(avatar)) {
-            user.avatar = avatar;
+            user.setAvatar(avatar);
         }
         userService.updateUser(user);
-        System.out.println(user);
         return new APIResponse(ResponeCode.SUCCESS, "更新成功");
     }
 
@@ -173,18 +149,21 @@ public class UserController {
     @RequestMapping(value = "/updateUserInfo", method = RequestMethod.POST)
     @Transactional
     public APIResponse updateUserInfo(User user) throws IOException {
-        User tmpUser =  userService.getUserDetail(user.getId());
+        User tmpUser = userService.getUserDetail(user.getId());
         if(tmpUser.getRole().equals(String.valueOf(User.NormalUser))){
-            // username和password不能改，故置空
-            user.setUsername(null);
-            user.setPassword(null);
-            user.setRole(String.valueOf(User.NormalUser));
-            String avatar = saveAvatar(user);
+            // 处理头像上传
+            String avatar = fileUploadService.uploadAvatar(user.getAvatarFile());
             if(!StringUtils.isEmpty(avatar)) {
-                user.avatar = avatar;
+                user.setAvatar(avatar);
             }
-            userService.updateUser(user);
-            return new APIResponse(ResponeCode.SUCCESS, "更新成功");
+            
+            // 更新用户信息
+            boolean success = userService.updateUserInfo(user);
+            if (success) {
+                return new APIResponse(ResponeCode.SUCCESS, "更新成功");
+            } else {
+                return new APIResponse(ResponeCode.FAIL, "更新失败");
+            }
         }else {
             return new APIResponse(ResponeCode.FAIL, "非法操作");
         }
@@ -194,41 +173,18 @@ public class UserController {
     @RequestMapping(value = "/updatePwd", method = RequestMethod.POST)
     @Transactional
     public APIResponse updatePwd(String userId, String password, String newPassword) throws IOException {
-        User user =  userService.getUserDetail(userId);
+        User user = userService.getUserDetail(userId);
         if(user.getRole().equals(String.valueOf(User.NormalUser))) {
-            String md5Pwd = DigestUtils.md5DigestAsHex((password + salt).getBytes());
-            if(user.getPassword().equals(md5Pwd)){
-                user.setPassword(DigestUtils.md5DigestAsHex((newPassword + salt).getBytes()));
-                userService.updateUser(user);
-            }else {
+            // Service内部处理密码加密和验证
+            boolean success = userService.updatePassword(userId, password, newPassword);
+            if (success) {
+                return new APIResponse(ResponeCode.SUCCESS, "更新成功");
+            } else {
                 return new APIResponse(ResponeCode.FAIL, "原密码错误");
             }
-            return new APIResponse(ResponeCode.SUCCESS, "更新成功");
         }else {
             return new APIResponse(ResponeCode.FAIL, "非法操作");
         }
-
     }
 
-    public String saveAvatar(User user) throws IOException {
-        MultipartFile file = user.getAvatarFile();
-        String newFileName = null;
-        if(file !=null && !file.isEmpty()) {
-
-            // 存文件
-            String oldFileName = file.getOriginalFilename();
-            String randomStr = UUID.randomUUID().toString();
-            newFileName = randomStr + oldFileName.substring(oldFileName.lastIndexOf("."));
-            String filePath = uploadPath + File.separator + "avatar" + File.separator + newFileName;
-            File destFile = new File(filePath);
-            if(!destFile.getParentFile().exists()){
-                destFile.getParentFile().mkdirs();
-            }
-            file.transferTo(destFile);
-        }
-        if(!StringUtils.isEmpty(newFileName)) {
-            user.avatar = newFileName;
-        }
-        return newFileName;
-    }
 }
