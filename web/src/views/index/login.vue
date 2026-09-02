@@ -21,12 +21,14 @@
         <div class="common-input">
           <img :src="PwdIcon" class="left-icon">
           <div class="input-view">
-            <input placeholder="请输入密码" v-model="pageData.loginForm.password" type="password" class="input">
+            <input placeholder="请输入密码" v-model="pageData.loginForm.password" :type="showPassword ? 'text' : 'password'" class="input">
             <p class="err-view">
             </p>
           </div>
-<!--          <img src="@/assets/pwd-hidden.svg" class="right-icon">-->
-          <!---->
+          <span class="eye-icon" @click="showPassword = !showPassword">
+            <EyeInvisibleOutlined v-if="showPassword" />
+            <EyeOutlined v-else />
+          </span>
         </div>
         <div class="next-btn-view">
           <button class="next-btn btn-active" style="margin: 16px 0px;" @click="handleLogin">登录</button>
@@ -43,10 +45,12 @@
 <script setup lang="ts">
 import {useUserStore} from '/@/store';
 import {message} from "ant-design-vue";
+import {EyeOutlined, EyeInvisibleOutlined} from '@ant-design/icons-vue';
 import LogoIcon from '/@/assets/images/k-logo.png';
 import MailIcon from '/@/assets/images/mail-icon.svg';
 import PwdIcon from '/@/assets/images/pwd-icon.svg';
 
+const showPassword = ref(false);
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -224,6 +228,20 @@ div {
       line-height: 16px;
       font-size: 12px;
       color: #f62a2a;
+    }
+  }
+
+  .eye-icon {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 18px;
+    color: #999;
+    margin-left: 8px;
+    flex-shrink: 0;
+
+    &:hover {
+      color: #3d5b96;
     }
   }
 }
