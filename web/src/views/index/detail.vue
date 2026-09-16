@@ -1,6 +1,123 @@
 <template>
   <div class="detail">
-    <Header/> 
+    <Header/>
+    <div class="detail-content" v-if="detailData.id">
+      <!-- 商品信息 -->
+      <div class="thing-infos-view">
+        <div class="thing-infos">
+          <div class="thing-img-box">
+            <img :src="detailData.cover" alt="">
+          </div>
+          <div class="thing-info-box">
+            <div class="thing-state">
+              <span class="state">{{ detailData.status == 1 ? '在售' : '下架' }}</span>
+            </div>
+            <h2 class="thing-name">{{ detailData.title }}</h2>
+            <div class="authors">
+              <span class="title">发布者：</span>
+              <span class="name">{{ detailData.nickname }}</span>
+            </div>
+            <div class="translators">
+              <span class="title">地址：</span>
+              <span>{{ detailData.address }}</span>
+            </div>
+            <div class="translators">
+              <span class="title">库存：</span>
+              <span>{{ detailData.stock || 0 }} 件</span>
+            </div>
+            <div class="buy-way">
+              <span class="price">¥{{ detailData.price }}</span>
+              <button class="buy-btn" :disabled="detailData.stock <= 0" @click="handleOrder(detailData)">{{ detailData.stock > 0 ? '立即购买' : '已售罄' }}</button>
+            </div>
+          </div>
+          <div class="thing-counts">
+            <div class="count-box">
+              <div class="count-item">
+                <div class="count-img"><img :src="RecommendIcon" alt=""></div>
+                <div class="count-text-box">
+                  <span class="count-title">推荐数</span>
+                </div>
+                <div class="count-num-box">{{ detailData.recommendCount || 0 }}</div>
+              </div>
+            </div>
+            <div class="count-box">
+              <div class="count-item">
+                <div class="count-img"><img :src="WantIcon" alt=""></div>
+                <div class="count-text-box">
+                  <span class="count-title">心愿数</span>
+                </div>
+                <div class="count-num-box">{{ detailData.wishCount || 0 }}</div>
+              </div>
+            </div>
+            <div class="count-item" @click="addToWish">
+              <div class="count-img"><img :src="AddIcon" alt=""></div>
+              <div class="count-text-box">
+                <span class="count-title">加心愿单</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 详情内容 -->
+      <div class="thing-content-view">
+        <div class="flex-view">
+          <div class="main-content">
+            <div class="main-tab">
+              <span class="tab" :class="{ 'tab-select': selectTabIndex == index }" v-for="(item, index) in tabData" :key="index" @click="selectTab(index)">{{ item }}</span>
+            </div>
+            <!-- 简介 -->
+            <div v-if="selectTabIndex == 0">
+              <div class="text" v-if="detailData.description">{{ detailData.description }}</div>
+              <div class="text" v-else>暂无简介</div>
+            </div>
+            <!-- 评论 -->
+            <div v-if="selectTabIndex == 1">
+              <div class="thing-comment">
+                <div class="publish">
+                  <input class="content-input" ref="commentRef" placeholder="写评论...">
+                  <button class="send-btn" @click="sendComment">发布</button>
+                </div>
+                <div class="tab-view">
+                  <span class="count-text">共{{ commentData.length }}条评论</span>
+                  <div class="tab-box">
+                    <span :class="{ 'tab-select': sortIndex == 0 }" @click="sortCommentList('recent')">最新</span>
+                    <span class="line"></span>
+                    <span :class="{ 'tab-select': sortIndex == 1 }" @click="sortCommentList('hot')">最热</span>
+                  </div>
+                </div>
+              </div>
+              <div class="comments-list">
+                <div class="comment-item" v-for="item in commentData" :key="item.id">
+                  <div class="flex-item">
+                    <img class="avator" :src="AvatarIcon" alt="">
+                    <div class="person">
+                      <span class="name">{{ item.nickname || '匿名用户' }}</span>
+                      <div class="time">{{ item.commentTime }}</div>
+                    </div>
+                  </div>
+                  <div class="comment-content">{{ item.content }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 推荐 -->
+          <div class="recommend">
+            <h3 class="title">相关推荐</h3>
+            <div class="things">
+              <div class="thing-item" v-for="item in recommendData" :key="item.id" @click="handleDetail(item)">
+                <div class="img-view">
+                  <img :src="item.cover" alt="">
+                </div>
+                <div class="info-view">
+                  <div class="thing-name">{{ item.title }}</div>
+                  <div class="price">¥{{ item.price }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 <script setup>
@@ -97,13 +214,22 @@ const share =()=> {
 const handleOrder =(detailData)=> {
   console.log(detailData)
   const userId = userStore.user_id
+  if (!userId) {
+    message.warn('请先登录')
+    return
+  }
+  if (detailData.stock <= 0) {
+    message.warn('该商品已售罄')
+    return
+  }
   router.push({name: 'confirm',
     query:
         {
           id: detailData.id,
           title: detailData.title,
           cover: detailData.cover,
-          price: detailData.price
+          price: detailData.price,
+          stock: detailData.stock
         }})
 }
 const getRecommendThing =()=> {
@@ -411,7 +537,6 @@ const sortCommentList =(sortType)=> {
   width: 110px;
   outline: none;
   border: none;
-  margin-top: 18px;
 }
 
 .buy-btn img {
@@ -425,15 +550,15 @@ const sortCommentList =(sortType)=> {
 }
 
 .buy-way {
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  margin-top: 16px;
 
-  .title {
+  .price {
+    color: #ff7b31;
+    font-size: 24px;
     font-weight: 600;
-    font-size: 18px;
-    height: 26px;
-    line-height: 26px;
-    color: #152844;
-    margin-bottom: 12px;
+    margin-right: 20px;
   }
 }
 

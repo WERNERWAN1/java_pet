@@ -44,6 +44,8 @@ public class Thing implements Serializable {
     @TableField
     public String collectCount;
     @TableField
+    public Integer stock;
+    @TableField
     public Long classificationId;
 
     @TableField(exist = false)

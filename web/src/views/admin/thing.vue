@@ -136,6 +136,11 @@
                   </a-select>
                 </a-form-item>
               </a-col>
+              <a-col span="12">
+                <a-form-item label="库存数量" name="stock">
+                  <a-input-number placeholder="请输入" :min="0" v-model:value="modal.form.stock" style="width: 100%;"></a-input-number>
+                </a-form-item>
+              </a-col>
             </a-row>
           </a-form>
         </div>
@@ -184,6 +189,11 @@ const columns = reactive([
     title: '价格',
     dataIndex: 'price',
     key: 'price'
+  },
+  {
+    title: '库存',
+    dataIndex: 'stock',
+    key: 'stock'
   },
   {
     title: '简介',
@@ -249,7 +259,8 @@ const modal = reactive({
     status: undefined,
     cover: undefined,
     coverUrl: undefined,
-    imageFile: undefined
+    imageFile: undefined,
+    stock: undefined
   },
   rules: {
     title: [{ required: true, message: '请输入名称', trigger: 'change' }],
@@ -404,6 +415,7 @@ const handleOk = () => {
         formData.append('nickname', modal.form.nickname || '')
         formData.append('sex', modal.form.sex || '')
         formData.append('address', modal.form.address || '')
+        formData.append('stock', modal.form.stock || 0)
         if (modal.form.status) {
           formData.append('status', modal.form.status)
         }

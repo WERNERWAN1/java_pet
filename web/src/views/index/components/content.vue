@@ -118,9 +118,15 @@ const onSelect = (selectedKeys) => {
   contentData.selectTagId = -1
 }
 const clickTag = (index) => {
-  contentData.selectedKeys = []
-  contentData.selectTagId = index
-  getThingList({tag: contentData.selectTagId})
+  // 如果点击已选中的标签，则取消选择
+  if (contentData.selectTagId === index) {
+    contentData.selectTagId = -1
+    getThingList({})
+  } else {
+    contentData.selectedKeys = []
+    contentData.selectTagId = index
+    getThingList({tag: contentData.selectTagId})
+  }
 }
 
 // 最新|最热|推荐

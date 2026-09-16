@@ -20,7 +20,7 @@
                 <h2>{{ pageData.title }}</h2>
               </div>
               <div class="pay">¥{{ pageData.price }}</div>
-              <a-input-number v-model:value="pageData.count" :min="1" :max="10" @change="onCountChange"/>
+              <a-input-number v-model:value="pageData.count" :min="1" :max="pageData.stock || 10" @change="onCountChange"/>
               <img :src="DeleteIcon" class="delete">
             </div>
           </div>
@@ -153,6 +153,7 @@ const pageData = reactive({
   remark: undefined,
   count: 1,
   amount: undefined,
+  stock: undefined,
   receiverName: undefined,
   receiverPhone: undefined,
   receiverAddress: undefined
@@ -182,6 +183,7 @@ onMounted(() => {
   pageData.title = route.query.title
   pageData.cover = route.query.cover
   pageData.price = route.query.price
+  pageData.stock = parseInt(route.query.stock) || 10
   pageData.amount = pageData.price
 
   listAddressData()

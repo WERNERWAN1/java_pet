@@ -2,7 +2,7 @@
   <div id="userLayout">
     <div class="user-layout-header">
       <img class="logo" :src="logoImage" alt="">
-      <span>宠物后台管理系统</span>
+      <span>宠物之家管理系统</span>
     </div>
     <div class="main-container">
       <div class="main">

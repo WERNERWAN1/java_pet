@@ -92,6 +92,9 @@ public class ThingServiceImpl extends ServiceImpl<ThingMapper, Thing> implements
         if (thing.getWishCount() == null) {
             thing.setWishCount("0");
         }
+        if (thing.getStock() == null) {
+            thing.setStock(0);
+        }
         mapper.insert(thing);
         // 更新tag
         setThingTags(thing);
