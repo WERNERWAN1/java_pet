@@ -1,0 +1,24 @@
+server:
+  port: 9100
+  servlet:
+    context-path: /api
+#文件存储地址
+BASE_LOCATION: E:\java_code\werner\java_pet\pet\src\main\resources\file
+DB_NAME: java_pet_2
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://10.10.80.98:3307/java_pet_2?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root_pwd!23
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com:
+      example:
+        mapper: debug

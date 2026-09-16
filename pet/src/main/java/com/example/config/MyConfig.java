@@ -1,13 +1,18 @@
 package com.example.config;
 
 import com.example.interceptor.AccessInterceptor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class MyConfig implements WebMvcConfigurer {
+    
+    @Value("${BASE_LOCATION}")
+    private String uploadPath;
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")//项目中的所有接口都支持跨域
@@ -21,4 +26,12 @@ public class MyConfig implements WebMvcConfigurer {
         // 自定义拦截器
         registry.addInterceptor(new AccessInterceptor());
     }
+
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/staticfiles/**")
+                .addResourceLocations("file:" + uploadPath + "/");
+    }
+
 }
