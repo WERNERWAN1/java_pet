@@ -232,4 +232,86 @@ CREATE TABLE `b_notice` (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = '公告表';
 
+-- ----------------------------
+-- 16. 宠物信息表 (animal)
+-- ----------------------------
+DROP TABLE IF EXISTS `animal`;
+CREATE TABLE `animal` (
+  `pid`          INT          NOT NULL AUTO_INCREMENT COMMENT '主键标识',
+  `photo`        VARCHAR(255) NULL DEFAULT NULL     COMMENT '形象照片',
+  `nickname`     VARCHAR(255) NULL DEFAULT NULL     COMMENT '爱宠名称',
+  `gender`       VARCHAR(255) NULL DEFAULT NULL     COMMENT '性别特征',
+  `years`        INT          NULL DEFAULT NULL     COMMENT '当前岁数',
+  `breed`        VARCHAR(255) NULL DEFAULT NULL     COMMENT '品种类别',
+  `condition`    VARCHAR(255) NULL DEFAULT NULL     COMMENT '健康状态',
+  `introduction` VARCHAR(255) NULL DEFAULT NULL     COMMENT '详细描述',
+  PRIMARY KEY (`pid`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = '宠物信息表';
+
+-- ----------------------------
+-- 17. 宠物领养表 (adopt)
+-- ----------------------------
+DROP TABLE IF EXISTS `adopt`;
+CREATE TABLE `adopt` (
+  `record_id` INT          NOT NULL AUTO_INCREMENT COMMENT '主键标识',
+  `owner_uid` INT          NULL DEFAULT NULL     COMMENT '领养人编号',
+  `pet_uid`   INT          NULL DEFAULT NULL     COMMENT '宠物编号',
+  `adopt_date` VARCHAR(255) NULL DEFAULT NULL     COMMENT '领养日期',
+  `state`     VARCHAR(255) NULL DEFAULT NULL     COMMENT '当前状态',
+  PRIMARY KEY (`record_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = '宠物领养表';
+
+-- ----------------------------
+-- 18. 宠物房间表 (room)
+-- ----------------------------
+DROP TABLE IF EXISTS `room`;
+CREATE TABLE `room` (
+  `id`     INT          NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `name`   VARCHAR(255) NULL DEFAULT NULL     COMMENT '房间编号',
+  `status` VARCHAR(255) NULL DEFAULT NULL     COMMENT '房间状态',
+  `animal` VARCHAR(255) NULL DEFAULT NULL     COMMENT '寄养宠物',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = '宠物房间表';
+
+-- ----------------------------
+-- 19. 宠物寄养表 (foster)
+-- ----------------------------
+DROP TABLE IF EXISTS `foster`;
+CREATE TABLE `foster` (
+  `order_id`   INT          NOT NULL AUTO_INCREMENT COMMENT '主键标识',
+  `client_uid` INT          NULL DEFAULT NULL     COMMENT '委托人编号',
+  `pet_name`   VARCHAR(255) NULL DEFAULT NULL     COMMENT '爱宠称呼',
+  `start_date` VARCHAR(255) NULL DEFAULT NULL     COMMENT '入住日期',
+  `duration`   INT          NULL DEFAULT NULL     COMMENT '托管时长',
+  `progress`   VARCHAR(255) NULL DEFAULT NULL     COMMENT '服务状态',
+  `cage_no`    INT          NULL DEFAULT NULL     COMMENT '笼位编号',
+  PRIMARY KEY (`order_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = '宠物寄养表';
+
+-- ----------------------------
+-- 20. 流浪动物上报表 (submit)
+-- ----------------------------
+DROP TABLE IF EXISTS `submit`;
+CREATE TABLE `submit` (
+  `id`     INT          NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `name`   VARCHAR(255) NULL DEFAULT NULL     COMMENT '上报说明',
+  `img`    VARCHAR(255) NULL DEFAULT NULL     COMMENT '上报图片',
+  `time`   VARCHAR(255) NULL DEFAULT NULL     COMMENT '上报时间',
+  `status` VARCHAR(255) NULL DEFAULT NULL     COMMENT '处理状态',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = '流浪动物上报表';
+
+-- ----------------------------
+-- 21. 宠物用品表 (goods)
+-- ----------------------------
+DROP TABLE IF EXISTS `goods`;
+CREATE TABLE `goods` (
+  `id`    INT          NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `name`  VARCHAR(255) NULL DEFAULT NULL     COMMENT '商品名字',
+  `img`   VARCHAR(255) NULL DEFAULT NULL     COMMENT '商品图片',
+  `price` INT          NULL DEFAULT NULL     COMMENT '商品单价',
+  `num`   INT          NULL DEFAULT NULL     COMMENT '商品数量',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = '宠物用品表';
+
 SET FOREIGN_KEY_CHECKS = 1;

@@ -7,6 +7,13 @@
       <img :src="SearchIcon" class="search-icon">
       <input placeholder="输入关键词" ref="keywordRef" @keyup.enter="search" />
     </div>
+    <div class="nav-links">
+      <a @click="$router.push({name:'portal'})">首页</a>
+      <a @click="$router.push({name:'animalList'})">宠物领养</a>
+      <a @click="$router.push({name:'goodsList'})">宠物用品</a>
+      <a @click="$router.push({name:'fosterApply'})">宠物寄养</a>
+      <a @click="$router.push({name:'submitReport'})">流浪上报</a>
+    </div>
     <div class="right-view">
       <a href="/admin" target="__black" type="a-link" style="line-height: 32px;width:60px;">后台入口</a>
       <template v-if="userStore.user_token">
@@ -18,6 +25,18 @@
             <a-menu>
               <a-menu-item>
                 <a @click="goUserCenter('orderView')">订单中心</a>
+              </a-menu-item>
+              <a-menu-item>
+                <a @click="goUserCenter('myAdopt')">我的领养</a>
+              </a-menu-item>
+              <a-menu-item>
+                <a @click="goUserCenter('myFoster')">我的寄养</a>
+              </a-menu-item>
+              <a-menu-item>
+                <a @click="goUserCenter('myOrder')">我的订单</a>
+              </a-menu-item>
+              <a-menu-item>
+                <a @click="goUserCenter('recharge')">余额充值</a>
               </a-menu-item>
               <a-menu-item>
                 <a @click="goUserCenter('userInfoEditView')">个人设置</a>
@@ -162,6 +181,19 @@ const onClose = () => {
     width: 32px;
     height: 32px;
     cursor: pointer;
+  }
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+  margin-left: 32px;
+  a {
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    line-height: 56px;
+    &:hover { color: #4684e2; }
   }
 }
 

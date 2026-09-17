@@ -18,6 +18,30 @@
             <database-outlined/>
             <span>宠物管理</span>
           </a-menu-item>
+          <a-menu-item key="animal">
+            <database-outlined/>
+            <span>宠物信息管理</span>
+          </a-menu-item>
+          <a-menu-item key="room">
+            <home-outlined/>
+            <span>宠物房间管理</span>
+          </a-menu-item>
+          <a-menu-item key="adopt">
+            <user-outlined/>
+            <span>宠物领养管理</span>
+          </a-menu-item>
+          <a-menu-item key="foster">
+            <folder-outlined/>
+            <span>宠物寄养管理</span>
+          </a-menu-item>
+          <a-menu-item key="submit">
+            <info-circle-outlined/>
+            <span>流浪动物上报</span>
+          </a-menu-item>
+          <a-menu-item key="goods">
+            <appstore-outlined/>
+            <span>宠物用品管理</span>
+          </a-menu-item>
           <a-menu-item key="classification">
             <layout-outlined/>
             <span>分类管理</span>

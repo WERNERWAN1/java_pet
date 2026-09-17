@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.AdoptMapper">
+
+    <select id="getAdoptList" resultType="java.util.Map">
+        select A.*, B.username as owner_name, C.nickname as pet_name
+        from adopt as A
+        left join b_user as B on (A.owner_uid=B.id)
+        left join animal as C on (A.pet_uid=C.pid)
+        order by A.record_id desc
+    </select>
+
+</mapper>

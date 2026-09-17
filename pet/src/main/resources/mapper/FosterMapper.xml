@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.FosterMapper">
+
+    <select id="getFosterList" resultType="java.util.Map">
+        select A.*, B.username as client_name
+        from foster as A
+        left join b_user as B on (A.client_uid=B.id)
+        order by A.order_id desc
+    </select>
+
+</mapper>

@@ -47,6 +47,36 @@ const constantRouterMap = [
         component: () => import('/@/views/index/search.vue')
       },
       {
+        path: 'animalList',
+        name: 'animalList',
+        component: () => import('/@/views/index/animal-list.vue')
+      },
+      {
+        path: 'animalDetail',
+        name: 'animalDetail',
+        component: () => import('/@/views/index/animal-detail.vue')
+      },
+      {
+        path: 'goodsList',
+        name: 'goodsList',
+        component: () => import('/@/views/index/goods-list.vue')
+      },
+      {
+        path: 'goodsBuy',
+        name: 'goodsBuy',
+        component: () => import('/@/views/index/goods-buy.vue')
+      },
+      {
+        path: 'fosterApply',
+        name: 'fosterApply',
+        component: () => import('/@/views/index/foster-apply.vue')
+      },
+      {
+        path: 'submitReport',
+        name: 'submitReport',
+        component: () => import('/@/views/index/submit-report.vue')
+      },
+      {
         path: 'usercenter',
         name: 'usercenter',
         redirect: '/index/usercenter/addressView',
@@ -117,6 +147,26 @@ const constantRouterMap = [
             name: 'messageView',
             component: () => import('/@/views/index/user/message-view.vue')
           },
+          {
+            path: 'myAdopt',
+            name: 'myAdopt',
+            component: () => import('/@/views/index/user/my-adopt.vue')
+          },
+          {
+            path: 'myFoster',
+            name: 'myFoster',
+            component: () => import('/@/views/index/user/my-foster.vue')
+          },
+          {
+            path: 'myOrder',
+            name: 'myOrder',
+            component: () => import('/@/views/index/user/my-order.vue')
+          },
+          {
+            path: 'recharge',
+            name: 'recharge',
+            component: () => import('/@/views/index/user/recharge.vue')
+          },
         ]
       }
     ]
@@ -145,6 +195,12 @@ const constantRouterMap = [
       { path: 'opLog', name: 'opLog', component: () => import('/@/views/admin/op-log.vue') },
       { path: 'errorLog', name: 'errorLog', component: () => import('/@/views/admin/error-log.vue') },
       { path: 'sysInfo', name: 'sysInfo', component: () => import('/@/views/admin/sys-info.vue') },
+      { path: 'animal', name: 'animal', component: () => import('/@/views/admin/animal.vue') },
+      { path: 'room', name: 'room', component: () => import('/@/views/admin/room.vue') },
+      { path: 'adopt', name: 'adopt', component: () => import('/@/views/admin/adopt.vue') },
+      { path: 'foster', name: 'foster', component: () => import('/@/views/admin/foster.vue') },
+      { path: 'submit', name: 'submit', component: () => import('/@/views/admin/submit.vue') },
+      { path: 'goods', name: 'goods', component: () => import('/@/views/admin/goods.vue') },
     ]
   },
 ];
