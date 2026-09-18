@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!--页面区域-->
     <div class="page-view">
       <div class="table-operations">
         <a-space>
@@ -27,7 +26,8 @@
       >
         <template #bodyCell="{ text, record, index, column }">
           <template v-if="column.key === 'imageUrl'">
-            <img :src="text" style="width: 60px;height: 40px;"/>
+            <img v-if="text" :src="text" style="width: 60px; height: 40px; object-fit: cover;" />
+            <span v-else style="color: #ccc;">无</span>
           </template>
           <template v-if="column.key === 'operation'">
             <span>
@@ -42,7 +42,6 @@
       </a-table>
     </div>
 
-    <!--弹窗区域-->
     <div>
       <a-modal
           :visible="modal.visile"
@@ -63,10 +62,18 @@
                       accept="image/*"
                       :multiple="false"
                       :before-upload="beforeUpload"
+                      :file-list="fileList"
+                      @remove="handleRemove"
                   >
-                    <p class="ant-upload-text">
-                      请选择要上传的横幅图片
+                    <p class="ant-upload-drag-icon">
+                      <template v-if="modal.form.imageUrl">
+                        <img :src="modal.form.imageUrl" style="width: 80px; height: 50px; object-fit: cover;" />
+                      </template>
+                      <template v-else>
+                        <file-image-outlined />
+                      </template>
                     </p>
+                    <p class="ant-upload-text">请选择要上传的横幅图片</p>
                   </a-upload-dragger>
                 </a-form-item>
               </a-col>
@@ -76,7 +83,6 @@
                 </a-form-item>
               </a-col>
             </a-row>
-
           </a-form>
         </div>
       </a-modal>
@@ -88,236 +94,132 @@
 import {FormInstance, message} from 'ant-design-vue';
 import {createApi, listApi, updateApi, deleteApi} from '/@/api/ad';
 import {BASE_URL} from "/@/store/constants";
+import {FileImageOutlined} from '@ant-design/icons-vue';
 
 const columns = reactive([
-  {
-    title: '序号',
-    dataIndex: 'index',
-    key: 'index',
-    align: 'center'
-  },
-  {
-    title: '图片',
-    dataIndex: 'imageUrl',
-    key: 'imageUrl',
-    align: 'center',
-  },
-  {
-    title: '跳转链接',
-    dataIndex: 'link',
-    key: 'link',
-    align: 'center'
-  },
-  {
-    title: '操作',
-    dataIndex: 'action',
-    key: 'operation',
-    align: 'center',
-    fixed: 'right',
-    width: 140,
-  },
+  {title: '序号', dataIndex: 'index', key: 'index', align: 'center', width: 60},
+  {title: '图片', dataIndex: 'imageUrl', key: 'imageUrl', align: 'center', width: 100},
+  {title: '跳转链接', dataIndex: 'link', key: 'link', align: 'center'},
+  {title: '操作', dataIndex: 'action', key: 'operation', align: 'center', fixed: 'right', width: 140},
 ]);
 
+const fileList = ref<any[]>([]);
+
 const beforeUpload = (file: File) => {
-  // 改文件名
   const fileName = new Date().getTime().toString() + '.' + file.type.substring(6);
   const copyFile = new File([file], fileName);
-  console.log(copyFile);
   modal.form.imageFile = copyFile;
+  // 本地预览
+  const reader = new FileReader();
+  reader.onload = (e) => { modal.form.imageUrl = e.target?.result as string; };
+  reader.readAsDataURL(file);
+  fileList.value = [file];
   return false;
 };
 
-const fileList = ref([]);
+const handleRemove = () => {
+  modal.form.imageFile = undefined;
+  modal.form.imageUrl = undefined;
+  fileList.value = [];
+};
 
-// 页面数据
 const data = reactive({
-  list: [],
+  list: [] as any[],
   loading: false,
-  currentAdminUserName: '',
   keyword: '',
   selectedRowKeys: [] as any[],
   pageSize: 10,
   page: 1,
 });
 
-// 弹窗数据源
 const modal = reactive({
   visile: false,
   editFlag: false,
   title: '',
-  form: {
-    id: undefined,
-    image: undefined,
-    imageFile: undefined,
-    imageUrl: undefined,
-    link: undefined,
-  },
-  rules: {
-    link: [{required: true, message: '请输入', trigger: 'change'}],
-  },
+  form: {id: undefined as any, image: undefined as any, imageFile: undefined as any, imageUrl: undefined as any, link: undefined as any},
+  rules: {link: [{required: true, message: '请输入', trigger: 'change'}]},
 });
 
 const myform = ref<FormInstance>();
 
-onMounted(() => {
-  getList();
-});
+onMounted(() => { getList(); });
 
 const getList = () => {
   data.loading = true;
-  listApi({
-    keyword: data.keyword,
-  })
-      .then((res) => {
-        data.loading = false;
-        console.log(res);
-        res.data.forEach((item: any, index: any) => {
-          item.index = index + 1;
-          if (item.image) {
-            item.imageUrl = BASE_URL + '/api/staticfiles/image/' + item.image
-          }
-        });
-        data.list = res.data;
-      })
-      .catch((err) => {
-        data.loading = false;
-        console.log(err);
-      });
+  listApi({keyword: data.keyword}).then((res) => {
+    data.loading = false;
+    res.data.forEach((item: any, index: number) => {
+      item.index = index + 1;
+      if (item.image) {
+        item.imageUrl = BASE_URL + '/api/staticfiles/image/' + item.image;
+      }
+    });
+    data.list = res.data;
+  }).catch(() => { data.loading = false; });
 };
 
-
-const rowSelection = ref({
-  onChange: (selectedRowKeys: (string | number)[], selectedRows: DataItem[]) => {
-    console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-    data.selectedRowKeys = selectedRowKeys;
-  },
-});
+const rowSelection = ref({onChange: (selectedRowKeys: (string | number)[]) => { data.selectedRowKeys = selectedRowKeys; }});
 
 const handleAdd = () => {
   resetModal();
   modal.visile = true;
   modal.editFlag = false;
   modal.title = '新增';
-  // 重置
-  for (const key in modal.form) {
-    modal.form[key] = undefined;
-  }
-  modal.form.image = undefined
+  for (const key in modal.form) { modal.form[key] = undefined; }
+  fileList.value = [];
 };
+
 const handleEdit = (record: any) => {
   resetModal();
   modal.visile = true;
   modal.editFlag = true;
   modal.title = '编辑';
-  // 重置
-  for (const key in modal.form) {
-    modal.form[key] = undefined;
+  for (const key in modal.form) { modal.form[key] = undefined; }
+  for (const key in record) { modal.form[key] = record[key]; }
+  // 编辑时显示已有图片预览
+  if (modal.form.image) {
+    modal.form.imageUrl = BASE_URL + '/api/staticfiles/image/' + modal.form.image;
   }
-  for (const key in record) {
-    modal.form[key] = record[key];
-  }
-  modal.form.image = undefined
+  fileList.value = [];
 };
 
 const confirmDelete = (record: any) => {
-  console.log('delete', record);
-  deleteApi({ids: record.id})
-      .then((res) => {
-        getList();
-      })
-      .catch((err) => {
-        message.error(err.msg || '操作失败');
-      });
+  deleteApi({ids: record.id}).then(() => { getList(); }).catch((err) => { message.error(err.msg || '操作失败'); });
 };
 
 const handleBatchDelete = () => {
-  console.log(data.selectedRowKeys);
-  if (data.selectedRowKeys.length <= 0) {
-    console.log('hello');
-    message.warn('请勾选删除项');
-    return;
-  }
-  deleteApi({ids: data.selectedRowKeys.join(',')})
-      .then((res) => {
-        message.success('删除成功');
-        data.selectedRowKeys = [];
-        getList();
-      })
-      .catch((err) => {
-        message.error(err.msg || '操作失败');
-      });
+  if (data.selectedRowKeys.length <= 0) { message.warn('请勾选删除项'); return; }
+  deleteApi({ids: data.selectedRowKeys.join(',')}).then(() => {
+    message.success('删除成功');
+    data.selectedRowKeys = [];
+    getList();
+  }).catch((err) => { message.error(err.msg || '操作失败'); });
 };
 
 const handleOk = () => {
-  myform.value?.validate()
-      .then(() => {
-        const formData = new FormData();
-        if (modal.form.id) {
-          formData.append('id', modal.form.id);
-        }
-        if (modal.form.link) {
-          formData.append('link', modal.form.link);
-        }
-        if (modal.form.imageFile) {
-          formData.append('imageFile', modal.form.imageFile);
-        }
-        if (modal.editFlag) {
-          updateApi(formData)
-              .then((res) => {
-                hideModal();
-                getList();
-              })
-              .catch((err) => {
-                console.log(err);
-                message.error(err.msg || '操作失败');
-              });
-        } else {
-          createApi(formData)
-              .then((res) => {
-                hideModal();
-                getList();
-              })
-              .catch((err) => {
-                console.log(err);
-                message.error(err.msg || '操作失败');
-              });
-        }
-      })
-      .catch((err) => {
-        console.log('不能为空');
-      });
+  myform.value?.validate().then(() => {
+    const formData = new FormData();
+    if (modal.form.id) {
+      formData.append('id', modal.form.id);
+    }
+    if (modal.form.link) {
+      formData.append('link', modal.form.link);
+    }
+    if (modal.form.imageFile) {
+      formData.append('imageFile', modal.form.imageFile);
+    }
+    const api = modal.editFlag ? updateApi : createApi;
+    api(formData).then(() => { hideModal(); getList(); }).catch((err) => { message.error(err.msg || '操作失败'); });
+  }).catch(() => { console.log('不能为空'); });
 };
 
-const handleCancel = () => {
-  hideModal();
-};
-
-// 恢复表单初始状态
-const resetModal = () => {
-  myform.value?.resetFields();
-};
-
-// 关闭弹窗
-const hideModal = () => {
-  modal.visile = false;
-};
+const handleCancel = () => { hideModal(); };
+const resetModal = () => { myform.value?.resetFields(); fileList.value = []; };
+const hideModal = () => { modal.visile = false; };
 </script>
 
 <style scoped lang="less">
-.page-view {
-  min-height: 100%;
-  background: #fff;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-}
-
-.table-operations {
-  margin-bottom: 16px;
-  text-align: right;
-}
-
-.table-operations > button {
-  margin-right: 8px;
-}
+.page-view { min-height: 100%; background: #fff; padding: 24px; display: flex; flex-direction: column; }
+.table-operations { margin-bottom: 16px; text-align: right; }
+.table-operations > button { margin-right: 8px; }
 </style>

@@ -3,7 +3,9 @@ package com.example.controller;
 import com.example.common.APIResponse;
 import com.example.common.ResponeCode;
 import com.example.entity.Foster;
+import com.example.entity.Room;
 import com.example.service.FosterService;
+import com.example.service.RoomService;
 import com.example.service.BatchDeleteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,11 +22,14 @@ public class FosterController {
     FosterService fosterService;
 
     @Autowired
+    RoomService roomService;
+
+    @Autowired
     BatchDeleteService batchDeleteService;
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
-    public APIResponse list() {
-        List<Map<String, Object>> list = fosterService.getFosterList();
+    public APIResponse list(String progress) {
+        List<Map<String, Object>> list = fosterService.getFosterList(progress);
         return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
     }
 
@@ -38,7 +43,25 @@ public class FosterController {
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     @Transactional
     public APIResponse update(Foster foster) {
-        fosterService.updateFoster(foster);
+        // 先获取原记录，保留未传的字段
+        Foster old = fosterService.getById(foster.getOrderId());
+        if (old == null) {
+            return new APIResponse(ResponeCode.FAIL, "记录不存在");
+        }
+        if (foster.getProgress() != null) {
+            old.setProgress(foster.getProgress());
+        }
+        if (foster.getCageNo() != null) {
+            old.setCageNo(foster.getCageNo());
+            // 更新房间状态为已占用
+            Room room = roomService.getById(foster.getCageNo());
+            if (room != null) {
+                room.setStatus("已占用");
+                room.setAnimal(old.getPetName());
+                roomService.updateRoom(room);
+            }
+        }
+        fosterService.updateFoster(old);
         return new APIResponse(ResponeCode.SUCCESS, "更新成功");
     }
 

@@ -1,19 +1,14 @@
 package com.example.service;
 
-
 import com.example.entity.Order;
 
 import java.util.List;
 
 public interface OrderService {
     List<Order> getOrderList();
-    void createOrder(Order order);
+    void createOrder(Order order, String orderType);
     void deleteOrder(String id);
-
     void updateOrder(Order order);
-
     List<Order> getUserOrderList(String userId, String status);
-    
-    // 取消订单
     void cancelOrder(Long orderId);
 }

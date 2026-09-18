@@ -33,7 +33,6 @@ public class OrderController {
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public APIResponse list(){
         List<Order> list =  service.getOrderList();
-
         return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
     }
 
@@ -46,8 +45,8 @@ public class OrderController {
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @Transactional
-    public APIResponse create(Order order) throws IOException {
-        service.createOrder(order);
+    public APIResponse create(Order order, String orderType) throws IOException {
+        service.createOrder(order, orderType);
         return new APIResponse(ResponeCode.SUCCESS, "创建成功");
     }
 

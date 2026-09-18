@@ -3,6 +3,13 @@
     <div class="page-view">
       <div class="table-operations">
         <a-space>
+          <a-input-search
+              v-model:value="data.keyword"
+              placeholder="搜索宠物名称"
+              style="width: 250px;"
+              @search="handleSearch"
+              allow-clear
+          />
           <a-button type="primary" @click="handleAdd">新增</a-button>
           <a-button @click="handleBatchDelete">批量删除</a-button>
         </a-space>
@@ -12,21 +19,15 @@
           rowKey="pid"
           :loading="data.loading"
           :columns="columns"
-          :data-source="data.list"
+          :data-source="data.pageData"
           :scroll="{ x: 'max-content' }"
           :row-selection="rowSelection"
-          :pagination="{
-          size: 'default',
-          current: data.page,
-          pageSize: data.pageSize,
-          onChange: (current) => (data.page = current),
-          showSizeChanger: false,
-          showTotal: (total) => `共${total}条数据`,
-        }"
+          :pagination="pagination"
       >
-        <template #bodyCell="{ text, record, index, column }">
+        <template #bodyCell="{ text, record, column }">
           <template v-if="column.key === 'photo'">
-            <img v-if="text" :src="getImgUrl(text)" style="width: 60px; height: 60px; object-fit: cover;" />
+            <img v-if="record.photo" :src="getImgUrl(record.photo)" style="width: 60px; height: 60px; object-fit: cover;" />
+            <span v-else style="color: #ccc;">暂无图片</span>
           </template>
           <template v-if="column.key === 'operation'">
             <span>
@@ -55,6 +56,28 @@
         <div>
           <a-form ref="myform" :label-col="{ style: { width: '80px' } }" :model="modal.form" :rules="modal.rules">
             <a-row :gutter="24">
+              <a-col span="24">
+                <a-form-item label="宠物照片">
+                  <a-upload-dragger
+                      name="file"
+                      accept="image/*"
+                      :multiple="false"
+                      :before-upload="beforeUpload"
+                      :file-list="fileList"
+                      @remove="handleRemove"
+                  >
+                    <p class="ant-upload-drag-icon">
+                      <template v-if="modal.form.photoUrl">
+                        <img :src="modal.form.photoUrl" style="width: 60px; height: 60px; object-fit: cover;" />
+                      </template>
+                      <template v-else>
+                        <file-image-outlined />
+                      </template>
+                    </p>
+                    <p class="ant-upload-text">请选择要上传的宠物照片</p>
+                  </a-upload-dragger>
+                </a-form-item>
+              </a-col>
               <a-col span="12">
                 <a-form-item label="宠物名称" name="nickname">
                   <a-input placeholder="请输入名称" v-model:value="modal.form.nickname"></a-input>
@@ -79,8 +102,8 @@
                 </a-form-item>
               </a-col>
               <a-col span="12">
-                <a-form-item label="健康状态" name="condition">
-                  <a-input placeholder="请输入健康状态" v-model:value="modal.form.condition"></a-input>
+                <a-form-item label="健康状态" name="healthCondition">
+                  <a-input placeholder="请输入健康状态" v-model:value="modal.form.healthCondition"></a-input>
                 </a-form-item>
               </a-col>
               <a-col span="24">
@@ -100,34 +123,75 @@
 import {FormInstance, message} from 'ant-design-vue';
 import {createApi, listApi, updateApi, deleteApi} from '/@/api/animal';
 import {BASE_URL} from "/@/store/constants";
+import {FileImageOutlined} from '@ant-design/icons-vue';
 
 const getImgUrl = (img) => BASE_URL + '/api/staticfiles/image/' + img;
 
-const columns = reactive([
-  {title: '序号', dataIndex: 'index', key: 'index', align: 'center'},
-  {title: '照片', dataIndex: 'photo', key: 'photo', align: 'center'},
+const fileList = ref<any[]>([]);
+
+const beforeUpload = (file: File) => {
+  const fileName = new Date().getTime().toString() + '.' + file.type.substring(6);
+  const copyFile = new File([file], fileName);
+  modal.form.imageFile = copyFile;
+  const reader = new FileReader();
+  reader.onload = (e) => { modal.form.photoUrl = e.target?.result as string; };
+  reader.readAsDataURL(file);
+  fileList.value = [file];
+  return false;
+};
+
+const handleRemove = () => {
+  modal.form.imageFile = undefined;
+  modal.form.photoUrl = undefined;
+  fileList.value = [];
+};
+
+const columns = [
+  {title: '序号', dataIndex: 'index', key: 'index', align: 'center', width: 60},
+  {title: '照片', dataIndex: 'photo', key: 'photo', align: 'center', width: 80},
   {title: '名称', dataIndex: 'nickname', key: 'nickname', align: 'center'},
   {title: '性别', dataIndex: 'gender', key: 'gender', align: 'center'},
   {title: '年龄', dataIndex: 'years', key: 'years', align: 'center'},
   {title: '品种', dataIndex: 'breed', key: 'breed', align: 'center'},
-  {title: '健康状态', dataIndex: 'condition', key: 'condition', align: 'center'},
+  {title: '健康状态', dataIndex: 'healthCondition', key: 'healthCondition', align: 'center'},
   {title: '介绍', dataIndex: 'introduction', key: 'introduction', align: 'center', ellipsis: true},
   {title: '操作', dataIndex: 'action', key: 'operation', align: 'center', fixed: 'right', width: 140},
-]);
+];
 
 const data = reactive({
-  list: [],
+  allList: [] as any[],
+  pageData: [] as any[],
   loading: false,
+  keyword: '',
   selectedRowKeys: [] as any[],
   pageSize: 10,
   page: 1,
+  total: 0,
 });
+
+const pagination = reactive({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+  showTotal: (total: number) => `共${total}条数据`,
+  onChange: (page: number, pageSize: number) => {
+    data.page = page;
+    data.pageSize = pageSize;
+    pagination.current = page;
+    updatePageData();
+  },
+});
+
+const updatePageData = () => {
+  const start = (data.page - 1) * data.pageSize;
+  data.pageData = data.allList.slice(start, start + data.pageSize);
+};
 
 const modal = reactive({
   visile: false,
   editFlag: false,
   title: '',
-  form: {pid: undefined, nickname: undefined, gender: undefined, years: undefined, breed: undefined, condition: undefined, introduction: undefined, photo: undefined},
+  form: {pid: undefined as any, nickname: undefined as any, gender: undefined as any, years: undefined as any, breed: undefined as any, healthCondition: undefined as any, introduction: undefined as any, photo: undefined as any, photoUrl: undefined as any, imageFile: undefined as any},
   rules: {nickname: [{required: true, message: '请输入', trigger: 'change'}]},
 });
 
@@ -137,11 +201,22 @@ onMounted(() => { getDataList(); });
 
 const getDataList = () => {
   data.loading = true;
-  listApi({}).then((res) => {
+  listApi({keyword: data.keyword}).then((res) => {
     data.loading = false;
-    res.data.forEach((item: any, index: any) => { item.index = index + 1; });
-    data.list = res.data;
+    const list = res.data || [];
+    list.forEach((item: any, index: number) => { item.index = index + 1; });
+    data.allList = list;
+    data.total = list.length;
+    pagination.total = list.length;
+    data.page = 1;
+    pagination.current = 1;
+    updatePageData();
   }).catch(() => { data.loading = false; });
+};
+
+const handleSearch = () => {
+  data.page = 1;
+  getDataList();
 };
 
 const rowSelection = ref({
@@ -153,7 +228,8 @@ const handleAdd = () => {
   modal.visile = true;
   modal.editFlag = false;
   modal.title = '新增宠物';
-  for (const key in modal.form) { modal.form[key] = undefined; }
+  for (const key in modal.form) { (modal.form as any)[key] = undefined; }
+  fileList.value = [];
 };
 
 const handleEdit = (record: any) => {
@@ -161,8 +237,13 @@ const handleEdit = (record: any) => {
   modal.visile = true;
   modal.editFlag = true;
   modal.title = '编辑宠物';
-  for (const key in modal.form) { modal.form[key] = undefined; }
-  for (const key in record) { modal.form[key] = record[key]; }
+  for (const key in modal.form) { (modal.form as any)[key] = undefined; }
+  for (const key in record) { (modal.form as any)[key] = record[key]; }
+  // 先生成预览URL，再清空photo字段（保留photoUrl用于显示）
+  if (modal.form.photo) {
+    modal.form.photoUrl = getImgUrl(modal.form.photo);
+  }
+  fileList.value = [];
 };
 
 const confirmDelete = (record: any) => {
@@ -180,18 +261,30 @@ const handleBatchDelete = () => {
 
 const handleOk = () => {
   myform.value?.validate().then(() => {
+    const formData = new FormData();
+    if (modal.editFlag && modal.form.pid) {
+      formData.append('pid', modal.form.pid);
+    }
+    formData.append('nickname', modal.form.nickname || '');
+    formData.append('gender', modal.form.gender || '');
+    formData.append('years', modal.form.years || '');
+    formData.append('breed', modal.form.breed || '');
+    formData.append('healthCondition', modal.form.healthCondition || '');
+    formData.append('introduction', modal.form.introduction || '');
+    if (modal.form.imageFile) {
+      formData.append('imageFile', modal.form.imageFile);
+    }
     const api = modal.editFlag ? updateApi : createApi;
-    api(modal.form).then(() => { hideModal(); getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); });
+    api(formData).then(() => { hideModal(); getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); });
   }).catch(() => { message.error('请填写必填项'); });
 };
 
 const handleCancel = () => { hideModal(); };
-const resetModal = () => { myform.value?.resetFields(); };
+const resetModal = () => { myform.value?.resetFields(); fileList.value = []; };
 const hideModal = () => { modal.visile = false; };
 </script>
 
 <style scoped lang="less">
 .page-view { min-height: 100%; background: #fff; padding: 24px; display: flex; flex-direction: column; }
-.table-operations { margin-bottom: 16px; text-align: right; }
-.table-operations > button { margin-right: 8px; }
+.table-operations { margin-bottom: 16px; display: flex; justify-content: flex-start; gap: 8px; }
 </style>

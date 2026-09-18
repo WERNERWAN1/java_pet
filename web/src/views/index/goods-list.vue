@@ -66,7 +66,7 @@ onMounted(() => {
 
 <style scoped lang="less">
 .goods-list-page { min-height: 100vh; }
-.content { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.content { max-width: 1200px; margin: 0 auto; padding: 80px 24px 40px; }
 .page-title { text-align: center; margin-bottom: 32px;
   h2 { font-size: 28px; color: #333; margin-bottom: 8px; }
   p { color: #999; font-size: 14px; }

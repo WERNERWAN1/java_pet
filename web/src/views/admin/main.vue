@@ -20,7 +20,7 @@
           </a-menu-item>
           <a-menu-item key="animal">
             <database-outlined/>
-            <span>宠物信息管理</span>
+            <span>待领养宠物</span>
           </a-menu-item>
           <a-menu-item key="room">
             <home-outlined/>

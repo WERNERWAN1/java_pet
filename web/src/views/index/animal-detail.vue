@@ -13,7 +13,7 @@
             <div class="info-row"><span class="label">品种：</span>{{ animal.breed }}</div>
             <div class="info-row"><span class="label">性别：</span>{{ animal.gender }}</div>
             <div class="info-row"><span class="label">年龄：</span>{{ animal.years }}岁</div>
-            <div class="info-row"><span class="label">健康状态：</span>{{ animal.condition }}</div>
+            <div class="info-row"><span class="label">健康状态：</span>{{ animal.healthCondition }}</div>
             <div class="info-row desc"><span class="label">介绍：</span>{{ animal.introduction }}</div>
             <a-button type="primary" size="large" @click="handleAdopt" style="margin-top: 24px;">申请领养</a-button>
           </div>
@@ -73,7 +73,7 @@ onMounted(() => {
 
 <style scoped lang="less">
 .animal-detail-page { min-height: 100vh; }
-.content { max-width: 1000px; margin: 0 auto; padding: 40px 24px; }
+.content { max-width: 1000px; margin: 0 auto; padding: 80px 24px 40px; }
 .detail-card { display: flex; gap: 40px; background: #fff; padding: 32px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 .detail-left { width: 400px; flex-shrink: 0;
   .detail-img { width: 100%; height: 400px; object-fit: cover; border-radius: 8px; }

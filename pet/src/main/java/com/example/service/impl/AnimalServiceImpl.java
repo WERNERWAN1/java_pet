@@ -1,5 +1,7 @@
 package com.example.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.Animal;
 import com.example.mapper.AnimalMapper;
@@ -16,8 +18,13 @@ public class AnimalServiceImpl extends ServiceImpl<AnimalMapper, Animal> impleme
     AnimalMapper animalMapper;
 
     @Override
-    public List<Animal> getAnimalList() {
-        return animalMapper.selectList(null);
+    public List<Animal> getAnimalList(String keyword) {
+        QueryWrapper<Animal> queryWrapper = new QueryWrapper<>();
+        if (StringUtils.isNotBlank(keyword)) {
+            queryWrapper.like("nickname", keyword);
+        }
+        queryWrapper.orderByDesc("pid");
+        return animalMapper.selectList(queryWrapper);
     }
 
     @Override

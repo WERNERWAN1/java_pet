@@ -3,10 +3,22 @@
 <mapper namespace="com.example.mapper.AdoptMapper">
 
     <select id="getAdoptList" resultType="java.util.Map">
-        select A.*, B.username as owner_name, C.nickname as pet_name
+        select A.record_id, A.owner_uid, A.pet_uid, A.adopt_date, A.state,
+               B.username as owner_name,
+               C.nickname as pet_name, C.photo as pet_photo, C.breed as pet_breed,
+               C.gender as pet_gender, C.years as pet_years,
+               C.health_condition as pet_health, C.introduction as pet_intro
         from adopt as A
         left join b_user as B on (A.owner_uid=B.id)
         left join animal as C on (A.pet_uid=C.pid)
+        <where>
+            <if test="breed != null and breed != ''">
+                and C.breed = #{breed}
+            </if>
+            <if test="state != null and state != ''">
+                and A.state = #{state}
+            </if>
+        </where>
         order by A.record_id desc
     </select>
 

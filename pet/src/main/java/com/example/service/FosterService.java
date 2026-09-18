@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface FosterService extends IService<Foster> {
-    List<Map<String, Object>> getFosterList();
+    List<Map<String, Object>> getFosterList(String progress);
     void addFoster(Foster foster);
     void updateFoster(Foster foster);
     void deleteFoster(Integer orderId);

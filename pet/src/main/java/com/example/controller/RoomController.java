@@ -22,8 +22,8 @@ public class RoomController {
     BatchDeleteService batchDeleteService;
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
-    public APIResponse list() {
-        List<Room> list = roomService.getRoomList();
+    public APIResponse list(String keyword) {
+        List<Room> list = roomService.getRoomList(keyword);
         return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
     }
 

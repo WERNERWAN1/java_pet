@@ -1,173 +1,208 @@
 <template>
   <div>
     <div class="page-view">
+      <!-- 筛选查询区 -->
       <div class="table-operations">
         <a-space>
-          <a-button type="primary" @click="handleAdd">新增</a-button>
-          <a-button @click="handleBatchDelete">批量删除</a-button>
+          <a-select v-model:value="data.progress" placeholder="请选择状态" style="width: 180px;" allow-clear>
+            <a-select-option value="已领回">已领回</a-select-option>
+            <a-select-option value="寄养中">寄养中</a-select-option>
+            <a-select-option value="已预约">已预约</a-select-option>
+            <a-select-option value="待处理">待处理</a-select-option>
+            <a-select-option value="已完成">已完成</a-select-option>
+          </a-select>
+          <a-button type="primary" @click="handleSearch">查询</a-button>
+          <a-button style="background: #fff; color: #e6a23c; border: 1px solid #e6a23c;" @click="handleReset">重置</a-button>
         </a-space>
       </div>
+
+      <!-- 数据列表区 -->
       <a-table
           size="middle"
-          rowKey="orderId"
+          rowKey="order_id"
           :loading="data.loading"
           :columns="columns"
-          :data-source="data.list"
+          :data-source="data.pageData"
           :scroll="{ x: 'max-content' }"
-          :row-selection="rowSelection"
-          :pagination="{
-          size: 'default',
-          current: data.page,
-          pageSize: data.pageSize,
-          onChange: (current) => (data.page = current),
-          showSizeChanger: false,
-          showTotal: (total) => `共${total}条数据`,
-        }"
+          :pagination="pagination"
       >
-        <template #bodyCell="{ text, record, index, column }">
+        <template #bodyCell="{ text, record, column }">
           <template v-if="column.key === 'progress'">
-            <a-tag :color="text === '已完成' ? 'green' : text === '进行中' ? 'blue' : 'orange'">{{ text }}</a-tag>
+            <a-tag :color="getProgressColor(text)">{{ text }}</a-tag>
           </template>
           <template v-if="column.key === 'operation'">
-            <span>
-              <a @click="handleEdit(record)">编辑</a>
-              <a-divider type="vertical" />
-              <a-popconfirm title="确定删除?" ok-text="是" cancel-text="否" @confirm="confirmDelete(record)">
-                <a href="#">删除</a>
+            <a-space>
+              <a-button v-if="record.progress === '待处理'" type="primary" size="small" @click="handleAudit(record)">审核</a-button>
+              <a-popconfirm title="确定删除该寄养记录?" ok-text="是" cancel-text="否" @confirm="handleDelete(record)">
+                <a-button type="link" danger style="border: 1px solid #f56c6c; border-radius: 4px; padding: 0 12px; height: 28px; line-height: 26px;">删除</a-button>
               </a-popconfirm>
-            </span>
+            </a-space>
           </template>
         </template>
       </a-table>
     </div>
 
-    <div>
-      <a-modal
-          :visible="modal.visile"
-          :forceRender="true"
-          :title="modal.title"
-          ok-text="确认"
-          cancel-text="取消"
-          @cancel="handleCancel"
-          @ok="handleOk"
-          width="600px"
-      >
-        <div>
-          <a-form ref="myform" :label-col="{ style: { width: '80px' } }" :model="modal.form" :rules="modal.rules">
-            <a-row :gutter="24">
-              <a-col span="12">
-                <a-form-item label="委托人ID" name="clientUid">
-                  <a-input-number placeholder="请输入用户ID" v-model:value="modal.form.clientUid" style="width: 100%;"></a-input-number>
-                </a-form-item>
-              </a-col>
-              <a-col span="12">
-                <a-form-item label="宠物名" name="petName">
-                  <a-input placeholder="请输入宠物名" v-model:value="modal.form.petName"></a-input>
-                </a-form-item>
-              </a-col>
-              <a-col span="12">
-                <a-form-item label="入住日期" name="startDate">
-                  <a-input placeholder="请输入日期" v-model:value="modal.form.startDate"></a-input>
-                </a-form-item>
-              </a-col>
-              <a-col span="12">
-                <a-form-item label="托管天数" name="duration">
-                  <a-input-number placeholder="请输入天数" v-model:value="modal.form.duration" style="width: 100%;" :min="1"></a-input-number>
-                </a-form-item>
-              </a-col>
-              <a-col span="12">
-                <a-form-item label="服务状态" name="progress">
-                  <a-select placeholder="请选择状态" v-model:value="modal.form.progress">
-                    <a-select-option value="待处理">待处理</a-select-option>
-                    <a-select-option value="进行中">进行中</a-select-option>
-                    <a-select-option value="已完成">已完成</a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col span="12">
-                <a-form-item label="笼位编号" name="cageNo">
-                  <a-input-number placeholder="请输入笼位号" v-model:value="modal.form.cageNo" style="width: 100%;" :min="1"></a-input-number>
-                </a-form-item>
-              </a-col>
-            </a-row>
-          </a-form>
+    <!-- 审核弹窗 -->
+    <a-modal
+        :visible="auditModal.visible"
+        title="寄养审核"
+        ok-text="确认"
+        cancel-text="取消"
+        @cancel="auditModal.visible = false"
+        @ok="handleAuditSubmit"
+        width="550px"
+    >
+      <a-descriptions :column="1" bordered size="small">
+        <a-descriptions-item label="用户">{{ auditModal.record?.client_name || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="宠物昵称">{{ auditModal.record?.pet_name || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="入住日期">{{ auditModal.record?.start_date || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="寄养天数">{{ auditModal.record?.duration || '-' }}天</a-descriptions-item>
+        <a-descriptions-item label="当前状态">
+          <a-tag color="red">{{ auditModal.record?.progress || '-' }}</a-tag>
+        </a-descriptions-item>
+      </a-descriptions>
+      <div style="margin-top: 16px;">
+        <div style="margin-bottom: 12px;">
+          <span style="margin-right: 12px;">审核结果：</span>
+          <a-radio-group v-model:value="auditModal.result">
+            <a-radio value="寄养中">通过（开始寄养）</a-radio>
+            <a-radio value="已预约">通过（已预约）</a-radio>
+            <a-radio value="已领回">拒绝（已领回）</a-radio>
+          </a-radio-group>
         </div>
-      </a-modal>
-    </div>
+        <div>
+          <span style="margin-right: 12px;">分配房间：</span>
+          <a-select v-model:value="auditModal.cageNo" placeholder="请选择房间" style="width: 200px;" allow-clear>
+            <a-select-option v-for="r in roomList" :key="r.id" :value="r.id" :disabled="r.status === '已占用'">
+              {{ r.name }} {{ r.status === '已占用' ? '(已占用)' : '' }}
+            </a-select-option>
+          </a-select>
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import {FormInstance, message} from 'ant-design-vue';
-import {createApi, listApi, updateApi, deleteApi} from '/@/api/foster';
+import {message} from 'ant-design-vue';
+import {listApi, updateApi, deleteApi} from '/@/api/foster';
+import {listApi as listRoomApi} from '/@/api/room';
 
-const columns = reactive([
-  {title: '序号', dataIndex: 'index', key: 'index', align: 'center'},
-  {title: '委托人', dataIndex: 'client_name', key: 'client_name', align: 'center'},
-  {title: '宠物名', dataIndex: 'pet_name', key: 'pet_name', align: 'center'},
-  {title: '入住日期', dataIndex: 'start_date', key: 'start_date', align: 'center'},
-  {title: '托管天数', dataIndex: 'duration', key: 'duration', align: 'center'},
-  {title: '服务状态', dataIndex: 'progress', key: 'progress', align: 'center'},
-  {title: '笼位编号', dataIndex: 'cage_no', key: 'cage_no', align: 'center'},
-  {title: '操作', dataIndex: 'action', key: 'operation', align: 'center', fixed: 'right', width: 140},
-]);
+const getProgressColor = (progress) => {
+  return {'已领回': 'green', '已完成': 'green', '寄养中': 'blue', '已预约': 'orange', '待处理': 'red'}[progress] || 'default';
+};
 
-const data = reactive({list: [], loading: false, selectedRowKeys: [] as any[], pageSize: 10, page: 1});
+const columns = [
+  {title: '序号', dataIndex: 'index', key: 'index', align: 'center', width: 80, sorter: (a, b) => a.index - b.index},
+  {title: '用户', dataIndex: 'client_name', key: 'client_name', align: 'center'},
+  {title: '宠物昵称', dataIndex: 'pet_name', key: 'pet_name', align: 'center'},
+  {title: '寄养时间', dataIndex: 'start_date', key: 'start_date', align: 'center', sorter: (a, b) => (a.start_date || '').localeCompare(b.start_date || '')},
+  {title: '寄养天数', dataIndex: 'duration', key: 'duration', align: 'center', sorter: (a, b) => (a.duration || 0) - (b.duration || 0)},
+  {title: '寄养状态', dataIndex: 'progress', key: 'progress', align: 'center'},
+  {title: '寄养房间', dataIndex: 'cage_no', key: 'cage_no', align: 'center'},
+  {title: '操作', dataIndex: 'action', key: 'operation', align: 'center', width: 160, fixed: 'right'},
+];
 
-const modal = reactive({
-  visile: false, editFlag: false, title: '',
-  form: {orderId: undefined, clientUid: undefined, petName: undefined, startDate: undefined, duration: undefined, progress: undefined, cageNo: undefined},
-  rules: {clientUid: [{required: true, message: '请输入', trigger: 'change'}], petName: [{required: true, message: '请输入', trigger: 'change'}]},
+const data = reactive({
+  allList: [] as any[],
+  pageData: [] as any[],
+  loading: false,
+  progress: undefined as any,
+  pageSize: 10,
+  page: 1,
 });
 
-const myform = ref<FormInstance>();
-onMounted(() => { getDataList(); });
+const pagination = reactive({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+  showTotal: (total: number) => `共 ${total} 条`,
+  showSizeChanger: false,
+  onChange: (page: number, pageSize: number) => {
+    data.page = page;
+    data.pageSize = pageSize;
+    pagination.current = page;
+    updatePageData();
+  },
+});
+
+const updatePageData = () => {
+  const start = (data.page - 1) * data.pageSize;
+  data.pageData = data.allList.slice(start, start + data.pageSize);
+};
+
+// 审核弹窗
+const auditModal = reactive({
+  visible: false,
+  record: null as any,
+  result: '寄养中' as string,
+  cageNo: undefined as any,
+});
+
+// 房间列表
+const roomList = ref<any[]>([]);
+
+const loadRooms = () => {
+  listRoomApi({}).then((res) => {
+    roomList.value = res.data || [];
+  });
+};
+
+onMounted(() => {
+  getDataList();
+  loadRooms();
+});
 
 const getDataList = () => {
   data.loading = true;
-  listApi({}).then((res) => {
+  listApi({progress: data.progress}).then((res) => {
     data.loading = false;
-    res.data.forEach((item: any, index: any) => { item.index = index + 1; });
-    data.list = res.data;
+    const list = res.data || [];
+    list.forEach((item: any, index: number) => { item.index = list.length - index; });
+    data.allList = list;
+    pagination.total = list.length;
+    data.page = 1;
+    pagination.current = 1;
+    updatePageData();
   }).catch(() => { data.loading = false; });
 };
 
-const rowSelection = ref({onChange: (selectedRowKeys: (string | number)[]) => { data.selectedRowKeys = selectedRowKeys; }});
+const handleSearch = () => { data.page = 1; getDataList(); };
+const handleReset = () => { data.progress = undefined; data.page = 1; getDataList(); };
 
-const handleAdd = () => {
-  resetModal(); modal.visile = true; modal.editFlag = false; modal.title = '新增寄养记录';
-  for (const key in modal.form) { modal.form[key] = undefined; }
+// 打开审核弹窗
+const handleAudit = (record: any) => {
+  auditModal.record = record;
+  auditModal.result = '寄养中';
+  auditModal.cageNo = record.cage_no || undefined;
+  auditModal.visible = true;
 };
 
-const handleEdit = (record: any) => {
-  resetModal(); modal.visile = true; modal.editFlag = true; modal.title = '编辑寄养记录';
-  for (const key in modal.form) { modal.form[key] = undefined; }
-  for (const key in record) { modal.form[key] = record[key]; }
+// 提交审核
+const handleAuditSubmit = () => {
+  if (!auditModal.record) return;
+  updateApi({
+    orderId: auditModal.record.order_id,
+    progress: auditModal.result,
+    cageNo: auditModal.cageNo || null,
+  }).then(() => {
+    message.success('审核完成');
+    auditModal.visible = false;
+    getDataList();
+  }).catch((err) => {
+    message.error(err.msg || '审核失败');
+  });
 };
 
-const confirmDelete = (record: any) => {
-  deleteApi({ids: record.orderId}).then(() => { getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); });
+const handleDelete = (record: any) => {
+  deleteApi({ids: record.order_id}).then(() => {
+    message.success('删除成功');
+    getDataList();
+  }).catch((err) => { message.error(err.msg || '删除失败'); });
 };
-
-const handleBatchDelete = () => {
-  if (data.selectedRowKeys.length <= 0) { message.warn('请勾选删除项'); return; }
-  deleteApi({ids: data.selectedRowKeys.join(',')}).then(() => { message.success('删除成功'); data.selectedRowKeys = []; getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); });
-};
-
-const handleOk = () => {
-  myform.value?.validate().then(() => {
-    const api = modal.editFlag ? updateApi : createApi;
-    api(modal.form).then(() => { hideModal(); getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); });
-  }).catch(() => { message.error('请填写必填项'); });
-};
-
-const handleCancel = () => { hideModal(); };
-const resetModal = () => { myform.value?.resetFields(); };
-const hideModal = () => { modal.visile = false; };
 </script>
 
 <style scoped lang="less">
 .page-view { min-height: 100%; background: #fff; padding: 24px; display: flex; flex-direction: column; }
-.table-operations { margin-bottom: 16px; text-align: right; }
-.table-operations > button { margin-right: 8px; }
+.table-operations { margin-bottom: 16px; display: flex; justify-content: flex-start; }
 </style>

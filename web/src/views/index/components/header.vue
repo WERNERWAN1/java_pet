@@ -19,7 +19,7 @@
       <template v-if="userStore.user_token">
         <a-dropdown>
           <a class="ant-dropdown-link" @click="e => e.preventDefault()">
-            <img :src="AvatarIcon" class="self-img" >
+            <img :src="userAvatar || AvatarIcon" class="self-img" @error="(e) => { e.target.src = AvatarIcon }">
           </a>
           <template #overlay>
             <a-menu>
@@ -100,11 +100,13 @@
 
 <script setup lang="ts">
 import {listApi} from '/@/api/notice'
+import {detailApi} from '/@/api/user'
 import {useUserStore} from "/@/store";
 import logoImage from '/@/assets/images/k-logo.png';
 import SearchIcon from '/@/assets/images/search-icon.svg';
 import AvatarIcon from '/@/assets/images/avatar.jpg';
 import MessageIcon from '/@/assets/images/message-icon.svg';
+import {BASE_URL} from "/@/store/constants";
 
 
 const router = useRouter();
@@ -112,13 +114,28 @@ const route = useRoute();
 const userStore = useUserStore();
 
 const keywordRef = ref()
+const userAvatar = ref('')
 
 let loading = ref(false)
 let msgVisible = ref(false)
 let msgData = ref([] as any)
 
+// 加载用户头像
+const loadUserAvatar = () => {
+  const userId = localStorage.getItem('user_id')
+  if (userId) {
+    detailApi({userId}).then((res) => {
+      const avatar = res.data?.avatar
+      if (avatar && avatar !== 'null' && avatar !== 'undefined' && avatar.trim() !== '') {
+        userAvatar.value = BASE_URL + '/api/staticfiles/image/' + avatar
+      }
+    }).catch(() => {})
+  }
+}
+
 onMounted(()=>{
   getMessageList()
+  loadUserAvatar()
 })
 
 const getMessageList = ()=> {

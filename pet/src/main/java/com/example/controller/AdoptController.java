@@ -23,8 +23,8 @@ public class AdoptController {
     BatchDeleteService batchDeleteService;
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
-    public APIResponse list() {
-        List<Map<String, Object>> list = adoptService.getAdoptList();
+    public APIResponse list(String breed, String state) {
+        List<Map<String, Object>> list = adoptService.getAdoptList(breed, state);
         return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
     }
 

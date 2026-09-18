@@ -1,5 +1,7 @@
 package com.example.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.Room;
 import com.example.mapper.RoomMapper;
@@ -16,8 +18,13 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
     RoomMapper roomMapper;
 
     @Override
-    public List<Room> getRoomList() {
-        return roomMapper.selectList(null);
+    public List<Room> getRoomList(String keyword) {
+        QueryWrapper<Room> queryWrapper = new QueryWrapper<>();
+        if (StringUtils.isNotBlank(keyword)) {
+            queryWrapper.like("name", keyword);
+        }
+        queryWrapper.orderByDesc("id");
+        return roomMapper.selectList(queryWrapper);
     }
 
     @Override

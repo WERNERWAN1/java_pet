@@ -18,7 +18,7 @@
               <p><span class="label">品种：</span>{{ item.breed }}</p>
               <p><span class="label">性别：</span>{{ item.gender }}</p>
               <p><span class="label">年龄：</span>{{ item.years }}岁</p>
-              <p><span class="label">状态：</span>{{ item.condition }}</p>
+              <p><span class="label">状态：</span>{{ item.healthCondition }}</p>
             </div>
           </div>
           <div v-if="animalList.length === 0 && !loading" class="no-data">暂无可领养宠物</div>
@@ -56,7 +56,7 @@ onMounted(() => {
 
 <style scoped lang="less">
 .animal-list-page { min-height: 100vh; }
-.content { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.content { max-width: 1200px; margin: 0 auto; padding: 80px 24px 40px; }
 .page-title { text-align: center; margin-bottom: 32px;
   h2 { font-size: 28px; color: #333; margin-bottom: 8px; }
   p { color: #999; font-size: 14px; }

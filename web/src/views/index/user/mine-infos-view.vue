@@ -1,7 +1,7 @@
 <template>
   <div class="mine-infos-view">
     <div class="info-box flex-view">
-      <img :src="AvatarImg" class="avatar-img">
+      <img :src="userAvatar || AvatarImg" class="avatar-img" @error="(e) => { e.target.src = AvatarImg }">
       <div class="name-box">
         <h2 class="nick">{{ userStore.user_name }}</h2>
         <div class="age">
@@ -104,10 +104,26 @@ import MessageIconImage from '/@/assets/images/setting-msg-icon.svg'
 
 import {userCollectListApi} from '/@/api/thingCollect'
 import {userWishListApi} from '/@/api/thingWish'
+import {detailApi} from '/@/api/user'
 import {useUserStore} from '/@/store';
+import {BASE_URL} from "/@/store/constants";
 const userStore = useUserStore();
 const router = useRouter();
 
+const userAvatar = ref('')
+
+// 加载用户头像
+const loadUserAvatar = () => {
+  const userId = localStorage.getItem('user_id')
+  if (userId) {
+    detailApi({userId}).then((res) => {
+      const avatar = res.data?.avatar
+      if (avatar && avatar !== 'null' && avatar !== 'undefined' && avatar.trim() !== '') {
+        userAvatar.value = BASE_URL + '/api/staticfiles/image/' + avatar
+      }
+    }).catch(() => {})
+  }
+}
 
 let collectCount = ref(0)
 let wishCount = ref(0)
@@ -115,6 +131,7 @@ let wishCount = ref(0)
 onMounted(()=>{
   getCollectThingList()
   getWishThingList()
+  loadUserAvatar()
 })
 
 const clickMenu =(name)=> {

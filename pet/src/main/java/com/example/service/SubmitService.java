@@ -6,7 +6,7 @@ import com.example.entity.Submit;
 import java.util.List;
 
 public interface SubmitService extends IService<Submit> {
-    List<Submit> getSubmitList();
+    List<Submit> getSubmitList(String keyword);
     void addSubmit(Submit submit);
     void updateSubmit(Submit submit);
     void deleteSubmit(Integer id);

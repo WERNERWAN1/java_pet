@@ -17,8 +17,8 @@ public class AdoptServiceImpl extends ServiceImpl<AdoptMapper, Adopt> implements
     AdoptMapper adoptMapper;
 
     @Override
-    public List<Map<String, Object>> getAdoptList() {
-        return adoptMapper.getAdoptList();
+    public List<Map<String, Object>> getAdoptList(String breed, String state) {
+        return adoptMapper.getAdoptList(breed, state);
     }
 
     @Override

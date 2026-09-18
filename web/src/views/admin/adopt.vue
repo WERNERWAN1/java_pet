@@ -1,160 +1,248 @@
 <template>
   <div>
     <div class="page-view">
+      <!-- 搜索栏 -->
       <div class="table-operations">
         <a-space>
-          <a-button type="primary" @click="handleAdd">新增</a-button>
-          <a-button @click="handleBatchDelete">批量删除</a-button>
+          <a-select v-model:value="data.breed" placeholder="选择宠物种类" style="width: 180px;" allow-clear>
+            <a-select-option v-for="item in data.breedList" :key="item" :value="item">{{ item }}</a-select-option>
+          </a-select>
+          <a-select v-model:value="data.state" placeholder="请选择状态" style="width: 150px;" allow-clear>
+            <a-select-option value="已领养">已领养</a-select-option>
+            <a-select-option value="已退养">已退养</a-select-option>
+            <a-select-option value="已归还">已归还</a-select-option>
+            <a-select-option value="待审核">待审核</a-select-option>
+          </a-select>
+          <a-button type="primary" @click="handleSearch">搜索</a-button>
+          <a-button style="background: #e6a23c; color: #fff; border-color: #e6a23c;" @click="handleReset">重置</a-button>
         </a-space>
       </div>
+
+      <!-- 数据表格 -->
       <a-table
           size="middle"
-          rowKey="recordId"
+          rowKey="record_id"
           :loading="data.loading"
           :columns="columns"
-          :data-source="data.list"
+          :data-source="data.pageData"
           :scroll="{ x: 'max-content' }"
           :row-selection="rowSelection"
-          :pagination="{
-          size: 'default',
-          current: data.page,
-          pageSize: data.pageSize,
-          onChange: (current) => (data.page = current),
-          showSizeChanger: false,
-          showTotal: (total) => `共${total}条数据`,
-        }"
+          :pagination="pagination"
       >
-        <template #bodyCell="{ text, record, index, column }">
-          <template v-if="column.key === 'state'">
-            <a-tag :color="text === '已领养' ? 'green' : text === '已退养' ? 'red' : 'blue'">{{ text }}</a-tag>
+        <template #bodyCell="{ text, record, column }">
+          <!-- 宠物信息列：圆形头像 + 名称 -->
+          <template v-if="column.key === 'pet_info'">
+            <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+              <img v-if="record.pet_photo" :src="getImgUrl(record.pet_photo)" class="pet-avatar" />
+              <div v-else class="pet-avatar pet-avatar-placeholder">无</div>
+              <span>{{ record.pet_name || '-' }}</span>
+            </div>
           </template>
+          <!-- 领养状态列 -->
+          <template v-if="column.key === 'state'">
+            <a-tag :color="getStateColor(text)">{{ text }}</a-tag>
+          </template>
+          <!-- 操作列 -->
           <template v-if="column.key === 'operation'">
-            <span>
-              <a @click="handleEdit(record)">编辑</a>
-              <a-divider type="vertical" />
-              <a-popconfirm title="确定删除?" ok-text="是" cancel-text="否" @confirm="confirmDelete(record)">
-                <a href="#">删除</a>
+            <a-space>
+              <!-- 待审核状态显示审核按钮 -->
+              <a-button v-if="record.state === '待审核'" type="primary" size="small" @click="handleAudit(record)">
+                审核
+              </a-button>
+              <a-popconfirm title="确定删除该领养记录?" ok-text="是" cancel-text="否" @confirm="handleDelete(record)">
+                <a-button type="link" danger style="border: 1px solid #f56c6c; border-radius: 4px; padding: 0 12px; height: 28px; line-height: 26px;">
+                  删除领养
+                </a-button>
               </a-popconfirm>
-            </span>
+            </a-space>
           </template>
         </template>
       </a-table>
     </div>
 
-    <div>
-      <a-modal
-          :visible="modal.visile"
-          :forceRender="true"
-          :title="modal.title"
-          ok-text="确认"
-          cancel-text="取消"
-          @cancel="handleCancel"
-          @ok="handleOk"
-      >
-        <div>
-          <a-form ref="myform" :label-col="{ style: { width: '80px' } }" :model="modal.form" :rules="modal.rules">
-            <a-row :gutter="24">
-              <a-col span="24">
-                <a-form-item label="领养人ID" name="ownerUid">
-                  <a-input-number placeholder="请输入用户ID" v-model:value="modal.form.ownerUid" style="width: 100%;"></a-input-number>
-                </a-form-item>
-              </a-col>
-              <a-col span="24">
-                <a-form-item label="宠物ID" name="petUid">
-                  <a-input-number placeholder="请输入宠物ID" v-model:value="modal.form.petUid" style="width: 100%;"></a-input-number>
-                </a-form-item>
-              </a-col>
-              <a-col span="24">
-                <a-form-item label="领养日期" name="adoptDate">
-                  <a-input placeholder="请输入领养日期" v-model:value="modal.form.adoptDate"></a-input>
-                </a-form-item>
-              </a-col>
-              <a-col span="24">
-                <a-form-item label="领养状态" name="state">
-                  <a-select placeholder="请选择状态" v-model:value="modal.form.state">
-                    <a-select-option value="已领养">已领养</a-select-option>
-                    <a-select-option value="已退养">已退养</a-select-option>
-                    <a-select-option value="待审核">待审核</a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-            </a-row>
-          </a-form>
-        </div>
-      </a-modal>
-    </div>
+    <!-- 审核弹窗 -->
+    <a-modal
+        :visible="auditModal.visible"
+        title="领养审核"
+        ok-text="确认"
+        cancel-text="取消"
+        @cancel="auditModal.visible = false"
+        @ok="handleAuditSubmit"
+    >
+      <a-descriptions :column="1" bordered size="small">
+        <a-descriptions-item label="宠物名称">{{ auditModal.record?.pet_name || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="宠物种类">{{ auditModal.record?.pet_breed || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="性别">{{ auditModal.record?.pet_gender || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="年龄">{{ auditModal.record?.pet_years ? auditModal.record.pet_years + '岁' : '-' }}</a-descriptions-item>
+        <a-descriptions-item label="健康状态">{{ auditModal.record?.pet_health || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="介绍">{{ auditModal.record?.pet_intro || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="领养人">{{ auditModal.record?.owner_name || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="申请时间">{{ auditModal.record?.adopt_date || '-' }}</a-descriptions-item>
+      </a-descriptions>
+      <div style="margin-top: 16px;">
+        <span style="margin-right: 12px;">审核结果：</span>
+        <a-radio-group v-model:value="auditModal.result">
+          <a-radio value="已领养">通过</a-radio>
+          <a-radio value="已退养">拒绝</a-radio>
+        </a-radio-group>
+      </div>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import {FormInstance, message} from 'ant-design-vue';
-import {createApi, listApi, updateApi, deleteApi} from '/@/api/adopt';
+import {message} from 'ant-design-vue';
+import {listApi, deleteApi, updateApi} from '/@/api/adopt';
+import {listApi as listAnimalApi} from '/@/api/animal';
+import {BASE_URL} from "/@/store/constants";
 
-const columns = reactive([
-  {title: '序号', dataIndex: 'index', key: 'index', align: 'center'},
+const getImgUrl = (img) => BASE_URL + '/api/staticfiles/image/' + img;
+
+const getStateColor = (state) => {
+  return {'已领养': 'green', '已退养': 'red', '已归还': 'orange', '待审核': 'blue'}[state] || 'default';
+};
+
+const columns = [
+  {title: '序号', dataIndex: 'index', key: 'index', align: 'center', width: 70, sorter: (a, b) => a.index - b.index},
+  {title: '宠物信息', dataIndex: 'pet_info', key: 'pet_info', align: 'center', width: 150},
+  {title: '宠物种类', dataIndex: 'pet_breed', key: 'pet_breed', align: 'center'},
+  {title: '性别', dataIndex: 'pet_gender', key: 'pet_gender', align: 'center', width: 70},
+  {title: '年龄', dataIndex: 'pet_years', key: 'pet_years', align: 'center', width: 70},
+  {title: '健康状态', dataIndex: 'pet_health', key: 'pet_health', align: 'center'},
   {title: '领养人', dataIndex: 'owner_name', key: 'owner_name', align: 'center'},
-  {title: '宠物名', dataIndex: 'pet_name', key: 'pet_name', align: 'center'},
-  {title: '领养日期', dataIndex: 'adopt_date', key: 'adopt_date', align: 'center'},
-  {title: '状态', dataIndex: 'state', key: 'state', align: 'center'},
-  {title: '操作', dataIndex: 'action', key: 'operation', align: 'center', fixed: 'right', width: 140},
-]);
+  {title: '领养时间', dataIndex: 'adopt_date', key: 'adopt_date', align: 'center', sorter: (a, b) => (a.adopt_date || '').localeCompare(b.adopt_date || '')},
+  {title: '领养状态', dataIndex: 'state', key: 'state', align: 'center'},
+  {title: '操作', dataIndex: 'action', key: 'operation', align: 'center', width: 160, fixed: 'right'},
+];
 
-const data = reactive({list: [], loading: false, selectedRowKeys: [] as any[], pageSize: 10, page: 1});
-
-const modal = reactive({
-  visile: false, editFlag: false, title: '',
-  form: {recordId: undefined, ownerUid: undefined, petUid: undefined, adoptDate: undefined, state: undefined},
-  rules: {ownerUid: [{required: true, message: '请输入', trigger: 'change'}], petUid: [{required: true, message: '请输入', trigger: 'change'}]},
+const data = reactive({
+  allList: [] as any[],
+  pageData: [] as any[],
+  loading: false,
+  breed: undefined as any,
+  state: undefined as any,
+  breedList: [] as string[],
+  selectedRowKeys: [] as any[],
+  pageSize: 10,
+  page: 1,
 });
 
-const myform = ref<FormInstance>();
-onMounted(() => { getDataList(); });
+const pagination = reactive({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+  showTotal: (total: number) => `共 ${total} 条`,
+  onChange: (page: number, pageSize: number) => {
+    data.page = page;
+    data.pageSize = pageSize;
+    pagination.current = page;
+    updatePageData();
+  },
+});
+
+const updatePageData = () => {
+  const start = (data.page - 1) * data.pageSize;
+  data.pageData = data.allList.slice(start, start + data.pageSize);
+};
+
+// 审核弹窗
+const auditModal = reactive({
+  visible: false,
+  record: null as any,
+  result: '已领养' as string,
+});
+
+onMounted(() => {
+  getDataList();
+  getBreedList();
+});
 
 const getDataList = () => {
   data.loading = true;
-  listApi({}).then((res) => {
+  listApi({breed: data.breed, state: data.state}).then((res) => {
     data.loading = false;
-    res.data.forEach((item: any, index: any) => { item.index = index + 1; });
-    data.list = res.data;
+    const list = res.data || [];
+    list.forEach((item: any, index: number) => { item.index = list.length - index; });
+    data.allList = list;
+    pagination.total = list.length;
+    data.page = 1;
+    pagination.current = 1;
+    updatePageData();
   }).catch(() => { data.loading = false; });
 };
 
-const rowSelection = ref({onChange: (selectedRowKeys: (string | number)[]) => { data.selectedRowKeys = selectedRowKeys; }});
-
-const handleAdd = () => {
-  resetModal(); modal.visile = true; modal.editFlag = false; modal.title = '新增领养记录';
-  for (const key in modal.form) { modal.form[key] = undefined; }
+const getBreedList = () => {
+  listAnimalApi({}).then((res) => {
+    const breeds = new Set<string>();
+    (res.data || []).forEach((item: any) => {
+      if (item.breed) breeds.add(item.breed);
+    });
+    data.breedList = Array.from(breeds);
+  });
 };
 
-const handleEdit = (record: any) => {
-  resetModal(); modal.visile = true; modal.editFlag = true; modal.title = '编辑领养记录';
-  for (const key in modal.form) { modal.form[key] = undefined; }
-  for (const key in record) { modal.form[key] = record[key]; }
+const handleSearch = () => { data.page = 1; getDataList(); };
+const handleReset = () => { data.breed = undefined; data.state = undefined; data.page = 1; getDataList(); };
+
+// 打开审核弹窗
+const handleAudit = (record: any) => {
+  auditModal.record = record;
+  auditModal.result = '已领养';
+  auditModal.visible = true;
 };
 
-const confirmDelete = (record: any) => {
-  deleteApi({ids: record.recordId}).then(() => { getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); });
+// 提交审核结果
+const handleAuditSubmit = () => {
+  if (!auditModal.record) return;
+  updateApi({
+    recordId: auditModal.record.record_id,
+    state: auditModal.result,
+  }).then(() => {
+    message.success('审核完成');
+    auditModal.visible = false;
+    getDataList();
+  }).catch((err) => {
+    message.error(err.msg || '审核失败');
+  });
 };
 
-const handleBatchDelete = () => {
-  if (data.selectedRowKeys.length <= 0) { message.warn('请勾选删除项'); return; }
-  deleteApi({ids: data.selectedRowKeys.join(',')}).then(() => { message.success('删除成功'); data.selectedRowKeys = []; getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); });
+const handleDelete = (record: any) => {
+  deleteApi({ids: record.record_id}).then(() => {
+    message.success('删除成功');
+    getDataList();
+  }).catch((err) => { message.error(err.msg || '操作失败'); });
 };
 
-const handleOk = () => {
-  myform.value?.validate().then(() => {
-    const api = modal.editFlag ? updateApi : createApi;
-    api(modal.form).then(() => { hideModal(); getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); });
-  }).catch(() => { message.error('请填写必填项'); });
-};
-
-const handleCancel = () => { hideModal(); };
-const resetModal = () => { myform.value?.resetFields(); };
-const hideModal = () => { modal.visile = false; };
+const rowSelection = ref({onChange: (keys: (string | number)[]) => { data.selectedRowKeys = keys; }});
 </script>
 
 <style scoped lang="less">
-.page-view { min-height: 100%; background: #fff; padding: 24px; display: flex; flex-direction: column; }
-.table-operations { margin-bottom: 16px; text-align: right; }
-.table-operations > button { margin-right: 8px; }
+.page-view {
+  min-height: 100%;
+  background: #fff;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+.table-operations {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-start;
+}
+.pet-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ebeef5;
+  flex-shrink: 0;
+}
+.pet-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  color: #c0c4cc;
+  font-size: 12px;
+}
 </style>

@@ -1,5 +1,7 @@
 package com.example.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.Submit;
 import com.example.mapper.SubmitMapper;
@@ -16,8 +18,13 @@ public class SubmitServiceImpl extends ServiceImpl<SubmitMapper, Submit> impleme
     SubmitMapper submitMapper;
 
     @Override
-    public List<Submit> getSubmitList() {
-        return submitMapper.selectList(null);
+    public List<Submit> getSubmitList(String keyword) {
+        QueryWrapper<Submit> queryWrapper = new QueryWrapper<>();
+        if (StringUtils.isNotBlank(keyword)) {
+            queryWrapper.like("name", keyword);
+        }
+        queryWrapper.orderByDesc("id");
+        return submitMapper.selectList(queryWrapper);
     }
 
     @Override

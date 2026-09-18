@@ -69,8 +69,8 @@ debug：当此属性设置为true时，将打印出logback内部日志信息，�
     <!-- hibernate logger -->
     <logger name="com.atguigu" level="debug" />
     <!-- Spring framework logger -->
-    <!-- Spring framework logger - include additivity to capture startup errors -->
-    <logger name="org.springframework" level="error"></logger>
+    <!-- Spring framework logger -->
+    <logger name="org.springframework" level="info"></logger>
 
 
 

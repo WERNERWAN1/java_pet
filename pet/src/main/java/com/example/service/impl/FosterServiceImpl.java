@@ -17,8 +17,8 @@ public class FosterServiceImpl extends ServiceImpl<FosterMapper, Foster> impleme
     FosterMapper fosterMapper;
 
     @Override
-    public List<Map<String, Object>> getFosterList() {
-        return fosterMapper.getFosterList();
+    public List<Map<String, Object>> getFosterList(String progress) {
+        return fosterMapper.getFosterList(progress);
     }
 
     @Override

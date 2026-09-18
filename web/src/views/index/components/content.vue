@@ -14,6 +14,33 @@
                   @click="clickTag(item.id)">{{ item.title }}</span>
         </div>
       </div>
+      <!-- 广告轮播区 -->
+      <div v-if="contentData.adList.length > 0" class="left-ad-banner">
+        <div class="ad-header">
+          <span class="ad-label">广告</span>
+          <span class="ad-title">推荐</span>
+        </div>
+        <div class="ad-carousel">
+          <div v-for="(ad, index) in contentData.adList" :key="ad.id" 
+               v-show="index === contentData.currentAdIndex" 
+               class="ad-slide" @click="handleAdClick(ad)">
+            <img :src="ad.imageUrl" class="ad-img" />
+          </div>
+          <!-- 左右切换按钮 -->
+          <div class="ad-nav-btn ad-prev" @click.stop="prevAd" v-if="contentData.adList.length > 1">
+            <left-outlined />
+          </div>
+          <div class="ad-nav-btn ad-next" @click.stop="nextAd" v-if="contentData.adList.length > 1">
+            <right-outlined />
+          </div>
+          <!-- 指示器 -->
+          <div class="ad-dots" v-if="contentData.adList.length > 1">
+            <span v-for="(ad, index) in contentData.adList" :key="'dot-'+ad.id" 
+                  class="ad-dot" :class="{active: index === contentData.currentAdIndex}"
+                  @click.stop="contentData.currentAdIndex = index"></span>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="content-right">
       <div class="top-select-view flex-view">
@@ -58,8 +85,10 @@
 import {listApi as listClassificationList} from '/@/api/classification'
 import {listApi as listTagList} from '/@/api/tag'
 import {listApi as listThingList} from '/@/api/thing'
+import {listApi as listAdList} from '/@/api/ad'
 import {BASE_URL} from "/@/store/constants";
 import {useUserStore} from "/@/store";
+import {LeftOutlined, RightOutlined} from '@ant-design/icons-vue';
 
 const userStore = useUserStore()
 const router = useRouter();
@@ -70,6 +99,8 @@ const contentData = reactive({
   cData: [],
   selectedKeys: [],
   tagData: [],
+  adList: [],
+  currentAdIndex: 0,
   loading: false,
 
   tabData: ['最新', '最热', '推荐'],
@@ -87,6 +118,7 @@ const contentData = reactive({
 onMounted(() => {
   initSider()
   getThingList({})
+  getAdList()
 })
 
 const initSider = () => {
@@ -100,6 +132,40 @@ const initSider = () => {
   listTagList().then(res => {
     contentData.tagData = res.data
   })
+}
+
+const getAdList = () => {
+  listAdList({}).then(res => {
+    contentData.adList = (res.data || []).map(item => {
+      if (item.image) {
+        item.imageUrl = BASE_URL + '/api/staticfiles/image/' + item.image
+      }
+      return item
+    }).filter(item => item.imageUrl)
+    
+    // 启动自动轮播
+    if (contentData.adList.length > 1) {
+      setInterval(() => {
+        contentData.currentAdIndex = (contentData.currentAdIndex + 1) % contentData.adList.length
+      }, 3000) // 每3秒切换
+    }
+  }).catch(() => {})
+}
+
+const handleAdClick = (ad) => {
+  if (ad.link) {
+    window.open(ad.link, '_blank')
+  }
+}
+
+const prevAd = () => {
+  if (contentData.adList.length === 0) return
+  contentData.currentAdIndex = (contentData.currentAdIndex - 1 + contentData.adList.length) % contentData.adList.length
+}
+
+const nextAd = () => {
+  if (contentData.adList.length === 0) return
+  contentData.currentAdIndex = (contentData.currentAdIndex + 1) % contentData.adList.length
 }
 
 const getSelectedKey = () => {
@@ -188,6 +254,117 @@ const getThingList = (data) => {
 .content-left {
   width: 220px;
   margin-right: 32px;
+}
+
+.left-ad-banner {
+  margin-top: 24px;
+  border-top: 1px solid #cedce4;
+  padding-top: 24px;
+  
+  .ad-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    
+    .ad-label {
+      background: #ff6b6b;
+      color: #fff;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-right: 8px;
+    }
+    
+    .ad-title {
+      color: #4d4d4d;
+      font-weight: 600;
+      font-size: 16px;
+      line-height: 24px;
+    }
+  }
+  
+  .ad-carousel {
+    position: relative;
+    width: 100%;
+    height: 150px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f5f5f5;
+    
+    &:hover .ad-nav-btn {
+      opacity: 1;
+    }
+  }
+  
+  .ad-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    transition: opacity 0.5s ease;
+  }
+  
+  .ad-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .ad-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+    color: #fff;
+    font-size: 12px;
+    
+    &:hover {
+      background: rgba(0, 0, 0, 0.8);
+    }
+    
+    &.ad-prev {
+      left: 8px;
+    }
+    
+    &.ad-next {
+      right: 8px;
+    }
+  }
+  
+  .ad-dots {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+    
+    .ad-dot {
+      width: 6px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      
+      &.active {
+        background: #fff;
+      }
+    }
+  }
 }
 
 .left-search-item {

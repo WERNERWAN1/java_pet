@@ -3,9 +3,15 @@
 <mapper namespace="com.example.mapper.FosterMapper">
 
     <select id="getFosterList" resultType="java.util.Map">
-        select A.*, B.username as client_name
+        select A.order_id, A.client_uid, A.pet_name, A.start_date, A.duration, A.progress, A.cage_no,
+               B.username as client_name
         from foster as A
         left join b_user as B on (A.client_uid=B.id)
+        <where>
+            <if test="progress != null and progress != ''">
+                and A.progress = #{progress}
+            </if>
+        </where>
         order by A.order_id desc
     </select>
 

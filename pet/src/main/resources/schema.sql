@@ -157,7 +157,8 @@ CREATE TABLE `b_order` (
   `status`           VARCHAR(20)  NULL DEFAULT NULL     COMMENT '订单状态',
   `order_time`       VARCHAR(30)  NULL DEFAULT NULL     COMMENT '下单时间',
   `pay_time`         VARCHAR(30)  NULL DEFAULT NULL     COMMENT '支付时间',
-  `thing_id`         BIGINT(20)   NULL DEFAULT NULL     COMMENT '商品ID',
+  `thing_id`         BIGINT(20)   NULL DEFAULT NULL     COMMENT '商品ID(关联b_thing或goods表)',
+  `order_type`       VARCHAR(20)  NULL DEFAULT 'thing'  COMMENT '订单类型(thing-宠物用品,goods-宠物商城用品)',
   `user_id`          BIGINT(20)   NULL DEFAULT NULL     COMMENT '用户ID',
   `count`            INT(11)      NULL DEFAULT NULL     COMMENT '数量',
   `order_number`     VARCHAR(50)  NULL DEFAULT NULL     COMMENT '订单编号',
@@ -243,7 +244,7 @@ CREATE TABLE `animal` (
   `gender`       VARCHAR(255) NULL DEFAULT NULL     COMMENT '性别特征',
   `years`        INT          NULL DEFAULT NULL     COMMENT '当前岁数',
   `breed`        VARCHAR(255) NULL DEFAULT NULL     COMMENT '品种类别',
-  `condition`    VARCHAR(255) NULL DEFAULT NULL     COMMENT '健康状态',
+  `health_condition` VARCHAR(255) NULL DEFAULT NULL     COMMENT '健康状态',
   `introduction` VARCHAR(255) NULL DEFAULT NULL     COMMENT '详细描述',
   PRIMARY KEY (`pid`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = '宠物信息表';

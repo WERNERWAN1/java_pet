@@ -6,7 +6,7 @@ import com.example.entity.Animal;
 import java.util.List;
 
 public interface AnimalService extends IService<Animal> {
-    List<Animal> getAnimalList();
+    List<Animal> getAnimalList(String keyword);
     void addAnimal(Animal animal);
     void updateAnimal(Animal animal);
     void deleteAnimal(Integer pid);

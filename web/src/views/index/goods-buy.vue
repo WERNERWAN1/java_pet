@@ -12,6 +12,29 @@
           </div>
         </div>
         <a-divider />
+
+        <!-- 收货地址选择 -->
+        <div v-if="addressList.length > 0" class="address-section">
+          <h4 style="margin-bottom: 12px;">选择收货地址</h4>
+          <div class="address-list">
+            <div
+                v-for="item in addressList"
+                :key="item.id"
+                class="address-item"
+                :class="{ active: selectedAddressId === item.id }"
+                @click="selectAddress(item)"
+            >
+              <div class="address-info">
+                <span class="address-name">{{ item.name }}</span>
+                <span class="address-phone">{{ item.mobile }}</span>
+                <a-tag v-if="item.def === '1'" color="blue" size="small">默认</a-tag>
+              </div>
+              <div class="address-detail">{{ item.description }}</div>
+            </div>
+          </div>
+          <a-divider />
+        </div>
+
         <a-form :label-col="{ style: { width: '80px' } }" :model="form">
           <a-form-item label="购买数量">
             <a-input-number v-model:value="form.num" :min="1" :max="goods.num" style="width: 200px;" />
@@ -46,6 +69,7 @@ import Header from '/@/views/index/components/header.vue';
 import Footer from '/@/views/index/components/footer.vue';
 import {detailApi} from '/@/api/goods';
 import {createApi} from '/@/api/order';
+import {listApi as addressListApi} from '/@/api/address';
 import {BASE_URL} from "/@/store/constants";
 import {message} from 'ant-design-vue';
 
@@ -53,9 +77,34 @@ const route = useRoute();
 const router = useRouter();
 const goods = ref(null);
 const submitting = ref(false);
+const addressList = ref([]);
+const selectedAddressId = ref(null);
+const userId = localStorage.getItem('user_id');
+
 const form = reactive({num: 1, username: '', phone: '', address: '', remark: ''});
 
 const getImgUrl = (img) => BASE_URL + '/api/staticfiles/image/' + img;
+
+// 加载用户收货地址
+const loadAddresses = () => {
+  if (!userId) return;
+  addressListApi({userId: userId}).then((res) => {
+    addressList.value = res.data || [];
+    // 自动选中默认地址
+    const defaultAddr = addressList.value.find(item => item.def === '1');
+    if (defaultAddr) {
+      selectAddress(defaultAddr);
+    }
+  });
+};
+
+// 选择地址后自动填充表单
+const selectAddress = (item) => {
+  selectedAddressId.value = item.id;
+  form.username = item.name || '';
+  form.phone = item.mobile || '';
+  form.address = item.description || '';
+};
 
 const handleSubmit = () => {
   if (!form.username || !form.phone || !form.address) {
@@ -64,8 +113,9 @@ const handleSubmit = () => {
   }
   submitting.value = true;
   createApi({
-    goodsId: goods.value.id,
-    userId: localStorage.getItem('user_id'),
+    thingId: goods.value.id,
+    orderType: 'goods',
+    userId: userId,
     count: form.num,
     receiverName: form.username,
     receiverPhone: form.phone,
@@ -86,12 +136,13 @@ onMounted(() => {
   if (goodsId) {
     detailApi({id: goodsId}).then((res) => { goods.value = res.data; });
   }
+  loadAddresses();
 });
 </script>
 
 <style scoped lang="less">
-.goods-buy-page { min-height: 100vh; }
-.content { max-width: 800px; margin: 0 auto; padding: 40px 24px;
+.goods-buy-page { min-height: 100vh; background: #f0f2f5; }
+.content { max-width: 800px; margin: 0 auto; padding: 80px 24px 40px;
   h2 { font-size: 24px; color: #333; margin-bottom: 24px; }
 }
 .buy-card { background: #fff; padding: 32px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -103,4 +154,26 @@ onMounted(() => {
   }
 }
 .total-row { margin-bottom: 16px; font-size: 16px; }
+.address-section {
+  h4 { color: #333; font-size: 15px; }
+}
+.address-list { display: flex; flex-direction: column; gap: 8px; }
+.address-item {
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover { border-color: #409eff; background: #f5f7fa; }
+  &.active { border-color: #409eff; background: #ecf5ff; }
+  .address-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+    .address-name { font-weight: 600; color: #333; }
+    .address-phone { color: #666; }
+  }
+  .address-detail { color: #999; font-size: 13px; }
+}
 </style>

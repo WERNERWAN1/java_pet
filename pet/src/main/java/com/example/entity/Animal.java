@@ -1,9 +1,11 @@
 package com.example.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @TableName("animal")
@@ -15,6 +17,9 @@ public class Animal {
     private String gender;
     private Integer years;
     private String breed;
-    private String condition;
+    private String healthCondition;
     private String introduction;
+
+    @TableField(exist = false)
+    private MultipartFile imageFile;
 }
