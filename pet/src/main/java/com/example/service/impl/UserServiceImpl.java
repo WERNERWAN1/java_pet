@@ -7,32 +7,79 @@ import com.example.service.UserService;
 import com.example.entity.User;
 import com.example.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    private static final String SALT = "abcd1234";
+    /**
+     * 历史遗留的固定盐值。
+     * 仅用于存量“加盐 MD5”密码的兼容校验与平滑迁移，新密码一律不再使用该盐。
+     */
+    @Deprecated
+    private static final String LEGACY_SALT = "abcd1234";
 
     @Autowired
     UserMapper userMapper;
 
     /**
-     * 对密码进行MD5加密
+     * BCrypt 加密器，由 PasswordConfig 统一配置（成本因子 10）
      */
-    private String encryptPassword(String password) {
-        return DigestUtils.md5DigestAsHex((password + SALT).getBytes());
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    /**
+     * 对明文密码做 BCrypt 单向散列。
+     * BCrypt 每次都会生成新的随机盐并内嵌在密文中，因此同一明文两次加密结果不同。
+     */
+    private String encryptPassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
     }
 
     /**
-     * 生成用户token
+     * 校验明文密码与库中密文是否匹配。
+     * 优先按 BCrypt 校验；若命中历史遗留的加盐 MD5 数据，校验通过后会在登录流程中自动升级为 BCrypt。
+     */
+    private boolean matchesPassword(String rawPassword, String storedPassword) {
+        if (rawPassword == null || storedPassword == null || storedPassword.isEmpty()) {
+            return false;
+        }
+        if (isBcryptHash(storedPassword)) {
+            return passwordEncoder.matches(rawPassword, storedPassword);
+        }
+        // 兼容历史数据：加盐 MD5
+        return legacyMd5(rawPassword).equals(storedPassword);
+    }
+
+    /**
+     * 判断密文是否为 BCrypt 格式（$2a$ / $2b$ / $2y$ 前缀）
+     */
+    private boolean isBcryptHash(String storedPassword) {
+        return storedPassword.startsWith("$2a$")
+                || storedPassword.startsWith("$2b$")
+                || storedPassword.startsWith("$2y$");
+    }
+
+    /**
+     * 历史算法：固定盐 + MD5。仅用于存量数据兼容，不参与新密码的生成。
+     */
+    @Deprecated
+    private String legacyMd5(String password) {
+        return DigestUtils.md5DigestAsHex((password + LEGACY_SALT).getBytes());
+    }
+
+    /**
+     * 生成用户 token。
+     * 使用 UUID 随机数，避免旧实现中“token = MD5(用户名 + 固定盐)”可被任意推导、冒用他人身份的风险。
      */
     private String generateToken(String username) {
-        return DigestUtils.md5DigestAsHex((username + SALT).getBytes());
+        return UUID.randomUUID().toString().replace("-", "");
     }
 
     @Override
@@ -48,20 +95,40 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public User getAdminUser(User user) {
-        QueryWrapper<User> queryWrapper = new QueryWrapper();
-        queryWrapper.eq("username", user.getUsername());
-        queryWrapper.eq("password", user.getPassword());
-        queryWrapper.gt("role", "1");
-        return userMapper.selectOne(queryWrapper);
+        return loginByRole(user, true);
     }
 
     @Override
     public User getNormalUser(User user) {
-        QueryWrapper<User> queryWrapper = new QueryWrapper();
-        queryWrapper.eq("username", user.getUsername());
-        queryWrapper.eq("password", user.getPassword());
-        queryWrapper.eq("role", "1");
-        return userMapper.selectOne(queryWrapper);
+        return loginByRole(user, false);
+    }
+
+    /**
+     * 按角色登录校验：先按用户名取出用户，再对密码做单向散列比对，
+     * 不再使用“where password = 密文”的等值查询（BCrypt 每次结果不同，等值查询必然失败）。
+     */
+    private User loginByRole(User user, boolean admin) {
+        if (user == null) {
+            return null;
+        }
+        User dbUser = getUserByUserName(user.getUsername());
+        if (dbUser == null || !matchesPassword(user.getPassword(), dbUser.getPassword())) {
+            return null;
+        }
+        int role = parseRole(dbUser.getRole());
+        boolean matched = admin ? role > User.NormalUser : role == User.NormalUser;
+        return matched ? clearSensitive(upgradePasswordIfNeeded(dbUser, user.getPassword())) : null;
+    }
+
+    private int parseRole(String role) {
+        if (role == null) {
+            return -1;
+        }
+        try {
+            return Integer.parseInt(role);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 
     @Override
@@ -104,22 +171,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     
     @Override
     public User loginAdminUser(String username, String password) {
-        String encryptedPassword = encryptPassword(password);
-        QueryWrapper<User> queryWrapper = new QueryWrapper();
-        queryWrapper.eq("username", username);
-        queryWrapper.eq("password", encryptedPassword);
-        queryWrapper.gt("role", "1");
-        return userMapper.selectOne(queryWrapper);
+        User user = getUserByUserName(username);
+        if (user == null || !matchesPassword(password, user.getPassword())) {
+            return null;
+        }
+        if (parseRole(user.getRole()) <= User.NormalUser) {
+            return null;
+        }
+        return clearSensitive(upgradePasswordIfNeeded(user, password));
     }
     
     @Override
     public User loginUser(String username, String password) {
-        String encryptedPassword = encryptPassword(password);
-        QueryWrapper<User> queryWrapper = new QueryWrapper();
-        queryWrapper.eq("username", username);
-        queryWrapper.eq("password", encryptedPassword);
-        queryWrapper.eq("role", "1");
-        return userMapper.selectOne(queryWrapper);
+        User user = getUserByUserName(username);
+        if (user == null || !matchesPassword(password, user.getPassword())) {
+            return null;
+        }
+        if (parseRole(user.getRole()) != User.NormalUser) {
+            return null;
+        }
+        return clearSensitive(upgradePasswordIfNeeded(user, password));
     }
     
     @Override
@@ -150,15 +221,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return false;
         }
         
-        // 验证旧密码
-        String encryptedOldPassword = encryptPassword(oldPassword);
-        if (!user.getPassword().equals(encryptedOldPassword)) {
+        // 验证旧密码（兼容存量 MD5 数据）
+        if (!matchesPassword(oldPassword, user.getPassword())) {
             return false;
         }
         
-        // 更新密码
-        String encryptedNewPassword = encryptPassword(newPassword);
-        user.setPassword(encryptedNewPassword);
+        // 更新为新算法密文
+        user.setPassword(encryptPassword(newPassword));
         userMapper.updateById(user);
         return true;
     }
@@ -171,5 +240,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         
         userMapper.updateById(user);
         return true;
+    }
+
+    /**
+     * 登录成功后抹除敏感字段，避免密码密文随用户信息一同返回前端
+     */
+    private User clearSensitive(User user) {
+        if (user != null) {
+            user.setPassword(null);
+        }
+        return user;
+    }
+
+    /**
+     * 存量密码平滑升级：登录或修改密码校验通过后，若库中仍是历史 MD5 密文，
+     * 则用本次明文重新生成 BCrypt 密文写回，历史账号无需重置即可继续使用。
+     */
+    private User upgradePasswordIfNeeded(User user, String rawPassword) {
+        if (user == null || user.getPassword() == null || isBcryptHash(user.getPassword())) {
+            return user;
+        }
+        User update = new User();
+        update.setId(user.getId());
+        update.setPassword(encryptPassword(rawPassword));
+        userMapper.updateById(update);
+        user.setPassword(update.getPassword());
+        return user;
     }
 }
