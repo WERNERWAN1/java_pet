@@ -5,19 +5,19 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.Serializable;
-
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("b_user")
-public class User implements Serializable {
+public class User extends BaseEntity {
     public static final int NormalUser = 1;
     public static final int DemoUser = 2;
     public static final int AdminUser = 3;
 
-    @TableId(value = "id",type = IdType.AUTO)
-    public String id;
+    @TableId(value = "id", type = IdType.AUTO)
+    public Long id;
     @TableField
     public String username;
     @TableField
@@ -37,7 +37,7 @@ public class User implements Serializable {
     @TableField
     public String status;
     @TableField
-    public String score;
+    public Integer score;
     @TableField
     public String avatar;
     @TableField(exist = false)
@@ -45,12 +45,7 @@ public class User implements Serializable {
     @TableField
     public String token;
     @TableField
-    public String createTime;
-    @TableField
     public String pushEmail;
     @TableField
     public String pushSwitch;
-
-
-
 }

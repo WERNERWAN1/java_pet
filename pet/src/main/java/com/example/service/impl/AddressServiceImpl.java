@@ -8,6 +8,7 @@ import com.example.service.AddressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -16,7 +17,7 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, Address> impl
     AddressMapper mapper;
 
     @Override
-    public List<Address> getAddressList(String userId) {
+    public List<Address> getAddressList(Long userId) {
         QueryWrapper<Address> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         queryWrapper.orderBy(true, false, "create_time");
@@ -27,9 +28,9 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, Address> impl
     public void createAddress(Address address) {
         // 如果设置为默认地址，则先取消其他默认地址
         if ("1".equals(address.getDef())) {
-            setDefaultAddress(address.getUserId(), address.getId().toString());
+            setDefaultAddress(address.getUserId(), address.getId());
         }
-        address.setCreateTime(String.valueOf(System.currentTimeMillis()));
+        address.setCreateTime(new Date());
         mapper.insert(address);
     }
 
@@ -42,13 +43,13 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, Address> impl
     public void updateAddress(Address address) {
         // 如果设置为默认地址，则先取消其他默认地址
         if ("1".equals(address.getDef())) {
-            setDefaultAddress(address.getUserId(), address.getId().toString());
+            setDefaultAddress(address.getUserId(), address.getId());
         }
         mapper.updateById(address);
     }
     
     @Override
-    public void setDefaultAddress(String userId, String addressId) {
+    public void setDefaultAddress(Long userId, Long addressId) {
         // 将用户的所有地址设置为非默认
         List<Address> addresses = getAddressList(userId);
         for (Address address : addresses) {

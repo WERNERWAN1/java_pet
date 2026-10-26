@@ -37,7 +37,7 @@ class ThingWishServiceImpl extends ServiceImpl<ThingWishMapper, ThingWish> imple
     }
 
     @Override
-    public ThingWish getThingWish(String userId, String thingId) {
+    public ThingWish getThingWish(Long userId, Long thingId) {
         QueryWrapper<ThingWish> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("thing_id", thingId)
                 .eq("user_id", userId);
@@ -57,7 +57,7 @@ class ThingWishServiceImpl extends ServiceImpl<ThingWishMapper, ThingWish> imple
         // 更新心愿计数
         Thing thing = thingMapper.selectById(thingWish.getThingId());
         if (thing != null) {
-            thing.setWishCount(String.valueOf(Integer.parseInt(thing.getWishCount()) + 1));
+            thing.setWishCount((thing.getWishCount() != null ? thing.getWishCount() : 0) + 1);
             thingMapper.updateById(thing);
         }
         return true;

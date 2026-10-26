@@ -4,30 +4,33 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
+import java.util.Date;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("b_comment")
-public class Comment implements Serializable {
-    @TableId(value = "id",type = IdType.AUTO)
+public class Comment extends BaseEntity {
+    @TableId(value = "id", type = IdType.AUTO)
     public Long id;
     @TableField
     public String content;
     @TableField
-    public String commentTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    public Date commentTime;
     @TableField
-    public String likeCount;
+    public Integer likeCount;
     @TableField
-    public String userId;
+    public Long userId;
     @TableField(exist = false)
     public String username; // 用户名
     @TableField
-    public String thingId;
+    public Long thingId;
     @TableField(exist = false)
     public String title; // 商品名称
     @TableField(exist = false)
     public String cover; // 商品封面
-
 }

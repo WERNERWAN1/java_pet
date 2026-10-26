@@ -44,7 +44,7 @@ public class UserController {
     }
 
     @RequestMapping(value = "/detail", method = RequestMethod.GET)
-    public APIResponse detail(String userId){
+    public APIResponse detail(Long userId){
         User user =  userService.getUserDetail(userId);
         return new APIResponse(ResponeCode.SUCCESS, "查询成功", user);
     }
@@ -125,7 +125,7 @@ public class UserController {
     @Access(level = AccessLevel.ADMIN)
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     public APIResponse delete(String ids){
-        batchDeleteService.batchDelete(ids, userService::deleteUser);
+        batchDeleteService.batchDelete(ids, id -> userService.deleteUser(Long.parseLong(id)));
         return new APIResponse(ResponeCode.SUCCESS, "删除成功");
     }
 
@@ -172,7 +172,7 @@ public class UserController {
     @Access(level = AccessLevel.LOGIN)
     @RequestMapping(value = "/updatePwd", method = RequestMethod.POST)
     @Transactional
-    public APIResponse updatePwd(String userId, String password, String newPassword) throws IOException {
+    public APIResponse updatePwd(Long userId, String password, String newPassword) throws IOException {
         User user = userService.getUserDetail(userId);
         if(user.getRole().equals(String.valueOf(User.NormalUser))) {
             // Service内部处理密码加密和验证

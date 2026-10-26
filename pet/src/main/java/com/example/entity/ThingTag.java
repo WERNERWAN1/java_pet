@@ -5,17 +5,16 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-
-import java.io.Serializable;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("b_thing_tag")
-public class ThingTag implements Serializable {
-    @TableId(value = "id",type = IdType.AUTO)
+public class ThingTag extends BaseEntity {
+    @TableId(value = "id", type = IdType.AUTO)
     public Long id;
     @TableField
     public Long thingId;
     @TableField
     public Long tagId;
-
 }

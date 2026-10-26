@@ -23,7 +23,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -117,9 +116,8 @@ public class AccessInterceptor extends HandlerInterceptorAdapter {
         opLog.setReMethod(request.getMethod());
         opLog.setReUrl(request.getRequestURI());
         opLog.setReUa(request.getHeader(HttpHeaders.USER_AGENT));
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-        opLog.setReTime(formatter.format(new Date()));
-        opLog.setAccessTime(String.valueOf(diff));
+        opLog.setReTime(new Date());
+        opLog.setAccessTime(diff.intValue());
         service.createOpLog(opLog);
     }
 

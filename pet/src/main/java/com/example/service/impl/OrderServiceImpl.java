@@ -12,6 +12,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
     @Override
     public void createOrder(Order order, String orderType) {
-        int count = (order.getCount() != null && !order.getCount().isEmpty()) ? Integer.parseInt(order.getCount()) : 1;
+        int count = (order.getCount() != null) ? order.getCount() : 1;
         String type = (orderType != null && !orderType.isEmpty()) ? orderType : "thing";
 
         if ("goods".equals(type)) {
@@ -71,13 +72,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         }
 
         // 创建订单
-        long ct = System.currentTimeMillis();
-        order.setOrderTime(String.valueOf(ct));
-        order.setOrderNumber(String.valueOf(ct));
+        Date now = new Date();
+        order.setOrderTime(now);
+        order.setOrderNumber(String.valueOf(System.currentTimeMillis()));
         order.setStatus("1");
         mapper.insert(order);
 
-        // 更新订单类型（Order实体无orderType字段，直接执行SQL）
+        // 更新订单类型
         Map<String, Object> params = new HashMap<>();
         params.put("id", order.getId());
         params.put("orderType", type);

@@ -7,6 +7,7 @@ import com.example.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -22,7 +23,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Override
     public void createComment(Comment comment) {
         System.out.println(comment);
-        comment.setCommentTime(String.valueOf(System.currentTimeMillis()));
+        comment.setCommentTime(new Date());
         mapper.insert(comment);
     }
 
@@ -55,8 +56,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     public void likeComment(String commentId) {
         Comment comment = getCommentDetail(commentId);
         if (comment != null) {
-            int likeCount = Integer.parseInt(comment.getLikeCount()) + 1;
-            comment.setLikeCount(String.valueOf(likeCount));
+            int likeCount = (comment.getLikeCount() != null ? comment.getLikeCount() : 0) + 1;
+            comment.setLikeCount(likeCount);
             mapper.updateById(comment);
         }
     }

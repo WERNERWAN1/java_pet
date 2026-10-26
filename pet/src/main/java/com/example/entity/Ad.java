@@ -5,14 +5,14 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.Serializable;
-
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("b_ad")
-public class Ad implements Serializable {
-    @TableId(value = "id",type = IdType.AUTO)
+public class Ad extends BaseEntity {
+    @TableId(value = "id", type = IdType.AUTO)
     public Long id;
     @TableField
     public String image;
@@ -20,7 +20,4 @@ public class Ad implements Serializable {
     public MultipartFile imageFile;
     @TableField
     public String link;
-    @TableField
-    public String createTime;
-
 }

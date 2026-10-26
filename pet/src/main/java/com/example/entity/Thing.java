@@ -4,16 +4,20 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("b_thing")
-public class Thing implements Serializable {
-    @TableId(value = "id",type = IdType.AUTO)
+public class Thing extends BaseEntity {
+    @TableId(value = "id", type = IdType.AUTO)
     public Long id;
     @TableField
     public String title;
@@ -28,21 +32,19 @@ public class Thing implements Serializable {
     @TableField
     public String description;
     @TableField
-    public String price;
+    public BigDecimal price;
     @TableField
     public String status;
     @TableField
-    public String createTime;
+    public Integer score;
     @TableField
-    public String score;
+    public Integer pv;
     @TableField
-    public String pv;
+    public Integer recommendCount;
     @TableField
-    public String recommendCount;
+    public Integer wishCount;
     @TableField
-    public String wishCount;
-    @TableField
-    public String collectCount;
+    public Integer collectCount;
     @TableField
     public Integer stock;
     @TableField
@@ -53,5 +55,4 @@ public class Thing implements Serializable {
 
     @TableField(exist = false)
     public MultipartFile imageFile;
-
 }

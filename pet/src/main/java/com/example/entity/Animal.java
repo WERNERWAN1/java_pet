@@ -5,19 +5,28 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.web.multipart.MultipartFile;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("animal")
-public class Animal {
+public class Animal extends BaseEntity {
     @TableId(value = "pid", type = IdType.AUTO)
-    private Integer pid;
+    private Long pid;
+    @TableField
     private String photo;
+    @TableField
     private String nickname;
+    @TableField
     private String gender;
+    @TableField
     private Integer years;
+    @TableField
     private String breed;
+    @TableField
     private String healthCondition;
+    @TableField
     private String introduction;
 
     @TableField(exist = false)

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -50,7 +51,7 @@ public class CustomExceptionHandler {
 
         //异常信息
         log.setContent(Arrays.toString(ex.getStackTrace()));
-        log.setLogTime(String.valueOf(System.currentTimeMillis()));
+        log.setLogTime(new Date());
 
         //保存
         service.createErrorLog(log);

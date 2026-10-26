@@ -5,13 +5,13 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-
-import java.io.Serializable;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("b_address")
-public class Address implements Serializable {
-    @TableId(value = "id",type = IdType.AUTO)
+public class Address extends BaseEntity {
+    @TableId(value = "id", type = IdType.AUTO)
     public Long id;
     @TableField
     public String name;
@@ -22,8 +22,5 @@ public class Address implements Serializable {
     @TableField
     public String def; // 默认
     @TableField
-    public String createTime;
-    @TableField
-    public String userId;
-
+    public Long userId;
 }

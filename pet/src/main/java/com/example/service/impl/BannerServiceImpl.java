@@ -8,6 +8,7 @@ import com.example.mapper.BannerMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -23,7 +24,7 @@ public class BannerServiceImpl extends ServiceImpl<BannerMapper, Banner> impleme
     @Override
     public void createBanner(Banner banner) {
         System.out.println(banner);
-        banner.setCreateTime(String.valueOf(System.currentTimeMillis()));
+        banner.setCreateTime(new Date());
         mapper.insert(banner);
     }
 

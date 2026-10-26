@@ -11,7 +11,7 @@ public interface ThingWishService {
     void createThingWish(ThingWish thingWish);
     void deleteThingWish(String id);
 
-    ThingWish getThingWish(String userId, String thingId);
+    ThingWish getThingWish(Long userId, Long thingId);
     
     // 添加愿望
     boolean addWish(ThingWish thingWish);

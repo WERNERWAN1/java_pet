@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -71,7 +72,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public void deleteUser(String id) {
+    public void deleteUser(Long id) {
         userMapper.deleteById(id);
     }
 
@@ -95,7 +96,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public User getUserDetail(String userId) {
+    public User getUserDetail(Long userId) {
         QueryWrapper<User> queryWrapper = new QueryWrapper();
         queryWrapper.eq("id", userId);
         return userMapper.selectOne(queryWrapper);
@@ -135,7 +136,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 设置默认值
         user.setRole(String.valueOf(User.NormalUser));
         user.setStatus("0");
-        user.setCreateTime(String.valueOf(System.currentTimeMillis()));
+        user.setCreateTime(new Date());
         
         // 保存用户
         userMapper.insert(user);
@@ -143,7 +144,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
     
     @Override
-    public boolean updatePassword(String userId, String oldPassword, String newPassword) {
+    public boolean updatePassword(Long userId, String oldPassword, String newPassword) {
         User user = getUserDetail(userId);
         if (user == null) {
             return false;

@@ -8,6 +8,7 @@ import com.example.entity.Ad;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -23,7 +24,7 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements AdServic
     @Override
     public void createAd(Ad ad) {
         System.out.println(ad);
-        ad.setCreateTime(String.valueOf(System.currentTimeMillis()));
+        ad.setCreateTime(new Date());
         mapper.insert(ad);
     }
 

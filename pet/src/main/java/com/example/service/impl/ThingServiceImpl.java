@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,16 +82,16 @@ public class ThingServiceImpl extends ServiceImpl<ThingMapper, Thing> implements
     @Override
     public void createThing(Thing thing) {
         System.out.println(thing);
-        thing.setCreateTime(String.valueOf(System.currentTimeMillis()));
+        thing.setCreateTime(new Date());
 
         if (thing.getPv() == null) {
-            thing.setPv("0");
+            thing.setPv(0);
         }
         if (thing.getScore() == null) {
-            thing.setScore("0");
+            thing.setScore(0);
         }
         if (thing.getWishCount() == null) {
-            thing.setWishCount("0");
+            thing.setWishCount(0);
         }
         if (thing.getStock() == null) {
             thing.setStock(0);
@@ -123,7 +124,7 @@ public class ThingServiceImpl extends ServiceImpl<ThingMapper, Thing> implements
     @Override
     public void addWishCount(String thingId) {
         Thing thing = mapper.selectById(thingId);
-        thing.setWishCount(String.valueOf(Integer.parseInt(thing.getWishCount()) + 1));
+        thing.setWishCount(thing.getWishCount() + 1);
         mapper.updateById(thing);
     }
 
@@ -131,7 +132,7 @@ public class ThingServiceImpl extends ServiceImpl<ThingMapper, Thing> implements
     @Override
     public void addCollectCount(String thingId) {
         Thing thing = mapper.selectById(thingId);
-        thing.setCollectCount(String.valueOf(Integer.parseInt(thing.getCollectCount()) + 1));
+        thing.setCollectCount(thing.getCollectCount() + 1);
         mapper.updateById(thing);
     }
 

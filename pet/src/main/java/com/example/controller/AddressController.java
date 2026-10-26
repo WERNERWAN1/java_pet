@@ -32,7 +32,7 @@ public class AddressController {
     BatchDeleteService batchDeleteService;
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
-    public APIResponse list(String userId){
+    public APIResponse list(Long userId){
         List<Address> list =  service.getAddressList(userId);
         return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
     }

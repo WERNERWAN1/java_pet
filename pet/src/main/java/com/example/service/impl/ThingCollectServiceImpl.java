@@ -37,7 +37,7 @@ class ThingCollectServiceImpl extends ServiceImpl<ThingCollectMapper, ThingColle
     }
 
     @Override
-    public ThingCollect getThingCollect(String userId, String thingId) {
+    public ThingCollect getThingCollect(Long userId, Long thingId) {
         QueryWrapper<ThingCollect> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("thing_id", thingId)
                 .eq("user_id", userId);
@@ -57,7 +57,7 @@ class ThingCollectServiceImpl extends ServiceImpl<ThingCollectMapper, ThingColle
         // 更新收藏计数
         Thing thing = thingMapper.selectById(thingCollect.getThingId());
         if (thing != null) {
-            thing.setCollectCount(String.valueOf(Integer.parseInt(thing.getCollectCount()) + 1));
+            thing.setCollectCount((thing.getCollectCount() != null ? thing.getCollectCount() : 0) + 1);
             thingMapper.updateById(thing);
         }
         return true;

@@ -8,6 +8,7 @@ import com.example.service.ClassificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -24,7 +25,7 @@ public class ClassificationServiceImpl extends ServiceImpl<ClassificationMapper,
     @Override
     public void createClassification(Classification classification) {
         System.out.println(classification);
-        classification.setCreateTime(String.valueOf(System.currentTimeMillis()));
+        classification.setCreateTime(new Date());
         mapper.insert(classification);
     }
 
