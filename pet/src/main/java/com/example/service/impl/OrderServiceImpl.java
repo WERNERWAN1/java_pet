@@ -12,6 +12,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     public void createOrder(Order order, String orderType) {
         int count = (order.getCount() != null) ? order.getCount() : 1;
         String type = (orderType != null && !orderType.isEmpty()) ? orderType : "thing";
+        BigDecimal unitPrice;
 
         if ("goods".equals(type)) {
             // 宠物用品订单 - 查 goods 表
@@ -53,6 +55,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             if (goods.getNum() < count) {
                 throw new RuntimeException("库存不足，当前库存：" + goods.getNum());
             }
+            unitPrice = goods.getPrice();
             goods.setNum(goods.getNum() - count);
             goodsMapper.updateById(goods);
         } else {
@@ -67,9 +70,18 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             if (thing.getStock() < count) {
                 throw new RuntimeException("库存不足，当前库存：" + thing.getStock());
             }
+            unitPrice = thing.getPrice();
             thing.setStock(thing.getStock() - count);
             thingMapper.updateById(thing);
         }
+
+        // 金额快照：在下单瞬间把成交单价与成交金额固化到订单，
+        // 后续商品调价或下架都不会改写历史订单金额，保证财务数据可追溯。
+        if (unitPrice == null) {
+            unitPrice = BigDecimal.ZERO;
+        }
+        order.setUnitPrice(unitPrice);
+        order.setAmount(unitPrice.multiply(BigDecimal.valueOf(count)));
 
         // 创建订单
         Date now = new Date();

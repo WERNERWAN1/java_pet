@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
@@ -26,6 +27,17 @@ public class Order extends BaseEntity {
     public Date payTime;
     @TableField
     public Long thingId;
+    /**
+     * 成交单价快照：下单瞬间从商品表固化到订单，避免商品后续调价导致历史订单金额失真。
+     * 使用 BigDecimal 定点数，规避 float/double 的二进制精度误差。
+     */
+    @TableField
+    public BigDecimal unitPrice;
+    /**
+     * 成交金额快照：unitPrice × count，下单时固化，作为订单金额的唯一权威来源。
+     */
+    @TableField
+    public BigDecimal amount;
     @TableField
     public String orderType; // 订单类型(thing-宠物商品,goods-宠物商城用品)
     @TableField
@@ -49,6 +61,10 @@ public class Order extends BaseEntity {
     public String title; // 商品名称
     @TableField(exist = false)
     public String cover; // 商品封面
+    /**
+     * 商品现价（非订单字段，仅用于列表展示对比）。
+     * 金额统一使用 BigDecimal，与数据库 decimal(10,2) 对应，不再用 String 传递。
+     */
     @TableField(exist = false)
-    public String price; // 商品价格
+    public BigDecimal price;
 }

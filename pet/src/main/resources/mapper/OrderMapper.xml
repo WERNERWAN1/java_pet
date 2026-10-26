@@ -2,6 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.mapper.OrderMapper">
 
+    <!--
+      订单金额说明
+        A.* 中已包含 unit_price（成交单价快照）与 amount（成交金额快照），
+        二者在下单瞬间由服务端按商品现价计算并写入，后续商品调价不会影响历史订单。
+        price 为关联商品的【当前价格】，仅供后台比对参考，不是该笔订单的实际金额。
+        金额字段在库中为 decimal(10,2)，实体中为 BigDecimal，不使用 varchar / double。
+    -->
+
     <select id="getList" resultType="com.example.entity.Order">
         select A.*,
                B.username,
