@@ -29,6 +29,12 @@ mybatis:
     # 允许 Map 结果保留 null 列（如未填充的审计字段）
     call-setters-on-nulls: true
 
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    # 允许 Map 结果保留 null 列，保证审计字段在接口中始终存在
+    call-setters-on-nulls: true
+
 logging:
   level:
     com:
