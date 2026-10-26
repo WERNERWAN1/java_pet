@@ -31,8 +31,13 @@ public class AdoptController {
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @Transactional
     public APIResponse create(Adopt adopt) {
-        adoptService.addAdopt(adopt);
-        return new APIResponse(ResponeCode.SUCCESS, "创建成功");
+        try {
+            adoptService.addAdopt(adopt);
+            return new APIResponse(ResponeCode.SUCCESS, "创建成功");
+        } catch (RuntimeException e) {
+            // 重复领养等业务校验失败，返回可读提示而非 500 错误
+            return new APIResponse(ResponeCode.FAIL, e.getMessage());
+        }
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)

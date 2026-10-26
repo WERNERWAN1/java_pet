@@ -46,8 +46,14 @@ public class OrderController {
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @Transactional
     public APIResponse create(Order order, String orderType) throws IOException {
-        service.createOrder(order, orderType);
-        return new APIResponse(ResponeCode.SUCCESS, "创建成功");
+        try {
+            service.createOrder(order, orderType);
+            return new APIResponse(ResponeCode.SUCCESS, "创建成功");
+        } catch (RuntimeException e) {
+            // 库存不足、商品不存在等业务校验失败，统一返回可读提示而非 500 错误
+            logger.warn("下单失败：{}", e.getMessage());
+            return new APIResponse(ResponeCode.FAIL, e.getMessage());
+        }
     }
 
     @Access(level = AccessLevel.ADMIN)

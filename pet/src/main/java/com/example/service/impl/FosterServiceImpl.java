@@ -21,8 +21,16 @@ public class FosterServiceImpl extends ServiceImpl<FosterMapper, Foster> impleme
         return fosterMapper.getFosterList(progress);
     }
 
+    /**
+     * 新增寄养预约。
+     * 业务约束：寄养天数必须为正整数，天数为空或小于等于 0 时拒绝提交，
+     * 防止生成无法计算费用、也无法安排房间的无效预约记录。
+     */
     @Override
     public void addFoster(Foster foster) {
+        if (foster.getDuration() == null || foster.getDuration() <= 0) {
+            throw new RuntimeException("寄养天数必须大于 0");
+        }
         fosterMapper.insert(foster);
     }
 

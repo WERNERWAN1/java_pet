@@ -36,8 +36,13 @@ public class FosterController {
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @Transactional
     public APIResponse create(Foster foster) {
-        fosterService.addFoster(foster);
-        return new APIResponse(ResponeCode.SUCCESS, "创建成功");
+        try {
+            fosterService.addFoster(foster);
+            return new APIResponse(ResponeCode.SUCCESS, "创建成功");
+        } catch (RuntimeException e) {
+            // 寄养天数非法等业务校验失败，返回可读提示而非 500 错误
+            return new APIResponse(ResponeCode.FAIL, e.getMessage());
+        }
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
@@ -47,6 +52,18 @@ public class FosterController {
         Foster old = fosterService.getById(foster.getOrderId());
         if (old == null) {
             return new APIResponse(ResponeCode.FAIL, "记录不存在");
+        }
+        // 宠物领回或寄养完成时，同步释放占用的房间，避免房间长期显示"已占用"
+        if ("已领回".equals(foster.getProgress()) || "已完成".equals(foster.getProgress())) {
+            Integer cageNo = (old.getCageNo() != null) ? old.getCageNo() : foster.getCageNo();
+            if (cageNo != null) {
+                Room used = roomService.getById(cageNo);
+                if (used != null) {
+                    used.setStatus("空闲");
+                    used.setAnimal(null);
+                    roomService.updateRoom(used);
+                }
+            }
         }
         if (foster.getProgress() != null) {
             old.setProgress(foster.getProgress());
