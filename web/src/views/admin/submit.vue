@@ -110,6 +110,7 @@
 import {FormInstance, message} from 'ant-design-vue';
 import {createApi, listApi, updateApi, deleteApi} from '/@/api/submit';
 import {BASE_URL} from "/@/store/constants";
+import {getFormatTime} from "/@/utils";
 import {FileImageOutlined} from '@ant-design/icons-vue';
 
 const getImgUrl = (img) => BASE_URL + '/api/staticfiles/image/' + img;
@@ -137,8 +138,12 @@ const columns = [
   {title: '序号', dataIndex: 'index', key: 'index', align: 'center', width: 60},
   {title: '上报说明', dataIndex: 'name', key: 'name', align: 'center', ellipsis: true},
   {title: '上报图片', dataIndex: 'img', key: 'img', align: 'center', width: 80},
-  {title: '上报时间', dataIndex: 'time', key: 'time', align: 'center'},
+  {title: '上报时间', dataIndex: 'time', key: 'time', align: 'center', customRender: ({text}) => getFormatTime(text, true) || '--'},
   {title: '处理状态', dataIndex: 'status', key: 'status', align: 'center'},
+  {title: '创建人', dataIndex: 'createByName', key: 'createByName', align: 'center', width: 100, customRender: ({text}) => text || '--'},
+  {title: '创建时间', dataIndex: 'createTime', key: 'createTime', align: 'center', width: 170, customRender: ({text}) => getFormatTime(text, true) || '--'},
+  {title: '修改人', dataIndex: 'updateByName', key: 'updateByName', align: 'center', width: 100, customRender: ({text}) => text || '--'},
+  {title: '修改时间', dataIndex: 'updateTime', key: 'updateTime', align: 'center', width: 170, customRender: ({text}) => getFormatTime(text, true) || '--'},
   {title: '操作', dataIndex: 'action', key: 'operation', align: 'center', fixed: 'right', width: 140},
 ];
 

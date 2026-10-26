@@ -95,6 +95,7 @@ import {message} from 'ant-design-vue';
 import {listApi, deleteApi, updateApi} from '/@/api/adopt';
 import {listApi as listAnimalApi} from '/@/api/animal';
 import {BASE_URL} from "/@/store/constants";
+import {getFormatTime} from "/@/utils";
 
 const getImgUrl = (img) => BASE_URL + '/api/staticfiles/image/' + img;
 
@@ -112,6 +113,10 @@ const columns = [
   {title: '领养人', dataIndex: 'owner_name', key: 'owner_name', align: 'center'},
   {title: '领养时间', dataIndex: 'adopt_date', key: 'adopt_date', align: 'center', sorter: (a, b) => (a.adopt_date || '').localeCompare(b.adopt_date || '')},
   {title: '领养状态', dataIndex: 'state', key: 'state', align: 'center'},
+  {title: '创建人', dataIndex: 'create_by_name', key: 'create_by_name', align: 'center', width: 100, customRender: ({record}) => record.create_by_name || record.createByName || '--'},
+  {title: '创建时间', dataIndex: 'create_time', key: 'create_time', align: 'center', width: 170, customRender: ({record}) => getFormatTime(record.create_time || record.createTime, true) || '--'},
+  {title: '修改人', dataIndex: 'update_by_name', key: 'update_by_name', align: 'center', width: 100, customRender: ({record}) => record.update_by_name || record.updateByName || '--'},
+  {title: '修改时间', dataIndex: 'update_time', key: 'update_time', align: 'center', width: 170, customRender: ({record}) => getFormatTime(record.update_time || record.updateTime, true) || '--'},
   {title: '操作', dataIndex: 'action', key: 'operation', align: 'center', width: 160, fixed: 'right'},
 ];
 

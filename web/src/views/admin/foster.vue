@@ -87,6 +87,7 @@
 import {message} from 'ant-design-vue';
 import {listApi, updateApi, deleteApi} from '/@/api/foster';
 import {listApi as listRoomApi} from '/@/api/room';
+import {getFormatTime} from "/@/utils";
 
 const getProgressColor = (progress) => {
   return {'已领回': 'green', '已完成': 'green', '寄养中': 'blue', '已预约': 'orange', '待处理': 'red'}[progress] || 'default';
@@ -100,6 +101,10 @@ const columns = [
   {title: '寄养天数', dataIndex: 'duration', key: 'duration', align: 'center', sorter: (a, b) => (a.duration || 0) - (b.duration || 0)},
   {title: '寄养状态', dataIndex: 'progress', key: 'progress', align: 'center'},
   {title: '寄养房间', dataIndex: 'cage_no', key: 'cage_no', align: 'center'},
+  {title: '创建人', dataIndex: 'create_by_name', key: 'create_by_name', align: 'center', width: 100, customRender: ({record}) => record.create_by_name || record.createByName || '--'},
+  {title: '创建时间', dataIndex: 'create_time', key: 'create_time', align: 'center', width: 170, customRender: ({record}) => getFormatTime(record.create_time || record.createTime, true) || '--'},
+  {title: '修改人', dataIndex: 'update_by_name', key: 'update_by_name', align: 'center', width: 100, customRender: ({record}) => record.update_by_name || record.updateByName || '--'},
+  {title: '修改时间', dataIndex: 'update_time', key: 'update_time', align: 'center', width: 170, customRender: ({record}) => getFormatTime(record.update_time || record.updateTime, true) || '--'},
   {title: '操作', dataIndex: 'action', key: 'operation', align: 'center', width: 160, fixed: 'right'},
 ];
 

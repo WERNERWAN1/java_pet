@@ -155,6 +155,7 @@ import { createApi, listApi, updateApi, deleteApi } from '/@/api/thing';
 import {listApi as listClassificationApi} from '/@/api/classification'
 import {listApi as listTagApi} from '/@/api/tag'
 import {BASE_URL} from "/@/store/constants";
+import {getFormatTime} from "/@/utils";
 import { FileImageOutlined } from '@ant-design/icons-vue';
 
 const columns = reactive([
@@ -206,6 +207,38 @@ const columns = reactive([
     dataIndex: 'status',
     key: 'status',
     customRender: ({ text, record, index, column }) => text === '0' ? '上架' : '下架'
+  },
+  {
+    title: '创建人',
+    dataIndex: 'createByName',
+    key: 'createByName',
+    align: 'center',
+    width: 100,
+    customRender: ({ text }) => text || '--'
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'createTime',
+    key: 'createTime',
+    align: 'center',
+    width: 170,
+    customRender: ({ text }) => getFormatTime(text, true) || '--'
+  },
+  {
+    title: '修改人',
+    dataIndex: 'updateByName',
+    key: 'updateByName',
+    align: 'center',
+    width: 100,
+    customRender: ({ text }) => text || '--'
+  },
+  {
+    title: '修改时间',
+    dataIndex: 'updateTime',
+    key: 'updateTime',
+    align: 'center',
+    width: 170,
+    customRender: ({ text }) => getFormatTime(text, true) || '--'
   },
   {
     title: '操作',

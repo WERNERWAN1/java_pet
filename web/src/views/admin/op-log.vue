@@ -37,6 +37,7 @@
 <script setup lang="ts">
 import { FormInstance, message } from 'ant-design-vue';
 import { listOpLogListApi } from '/@/api/log';
+import { getFormatTime } from '/@/utils';
 
 
 const columns = reactive([
@@ -68,7 +69,8 @@ const columns = reactive([
     title: '操作时间',
     dataIndex: 'reTime',
     key: 'reTime',
-    align: 'center'
+    align: 'center',
+    customRender: ({ text }) => getFormatTime(text, true) || '--'
   },
   {
     title: '耗时',
@@ -76,6 +78,38 @@ const columns = reactive([
     key: 'accessTime',
     align: 'center',
     customRender: ({ text, record, index, column }) => text + 'ms' ,
+  },
+  {
+    title: '创建人',
+    dataIndex: 'createByName',
+    key: 'createByName',
+    align: 'center',
+    width: 100,
+    customRender: ({ text }) => text || '--'
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'createTime',
+    key: 'createTime',
+    align: 'center',
+    width: 170,
+    customRender: ({ text }) => getFormatTime(text, true) || '--'
+  },
+  {
+    title: '修改人',
+    dataIndex: 'updateByName',
+    key: 'updateByName',
+    align: 'center',
+    width: 100,
+    customRender: ({ text }) => text || '--'
+  },
+  {
+    title: '修改时间',
+    dataIndex: 'updateTime',
+    key: 'updateTime',
+    align: 'center',
+    width: 170,
+    customRender: ({ text }) => getFormatTime(text, true) || '--'
   }
 ]);
 

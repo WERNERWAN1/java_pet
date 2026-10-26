@@ -107,6 +107,7 @@
 import {FormInstance, message} from 'ant-design-vue';
 import {createApi, listApi, updateApi, deleteApi} from '/@/api/goods';
 import {BASE_URL} from "/@/store/constants";
+import {getFormatTime} from "/@/utils";
 import {FileImageOutlined} from '@ant-design/icons-vue';
 
 const getImgUrl = (img) => BASE_URL + '/api/staticfiles/image/' + img;
@@ -136,6 +137,10 @@ const columns = [
   {title: '商品名称', dataIndex: 'name', key: 'name', align: 'center'},
   {title: '商品价格', dataIndex: 'price', key: 'price', align: 'center'},
   {title: '商品数量', dataIndex: 'num', key: 'num', align: 'center'},
+  {title: '创建人', dataIndex: 'createByName', key: 'createByName', align: 'center', width: 100, customRender: ({text}) => text || '--'},
+  {title: '创建时间', dataIndex: 'createTime', key: 'createTime', align: 'center', width: 170, customRender: ({text}) => getFormatTime(text, true) || '--'},
+  {title: '修改人', dataIndex: 'updateByName', key: 'updateByName', align: 'center', width: 100, customRender: ({text}) => text || '--'},
+  {title: '修改时间', dataIndex: 'updateTime', key: 'updateTime', align: 'center', width: 170, customRender: ({text}) => getFormatTime(text, true) || '--'},
   {title: '操作', dataIndex: 'action', key: 'operation', align: 'center', fixed: 'right', width: 140},
 ];
 
