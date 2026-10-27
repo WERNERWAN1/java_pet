@@ -23,17 +23,33 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
         if (StringUtils.isNotBlank(keyword)) {
             queryWrapper.like("name", keyword);
         }
-        queryWrapper.orderByDesc("id");
+        // 按状态排序：空闲 > 维护中 > 已占用，同状态内按 id 降序
+        queryWrapper.orderByAsc("FIELD(status, '空闲', '维护中', '已占用')").orderByDesc("id");
         return roomMapper.selectList(queryWrapper);
     }
 
     @Override
     public void addRoom(Room room) {
+        // 校验房间编号唯一性
+        QueryWrapper<Room> qw = new QueryWrapper<>();
+        qw.eq("name", room.getName());
+        if (roomMapper.selectCount(qw) > 0) {
+            throw new RuntimeException("房间编号已存在");
+        }
         roomMapper.insert(room);
     }
 
     @Override
     public void updateRoom(Room room) {
+        // 校验房间编号唯一性（排除自身）
+        if (room.getName() != null) {
+            QueryWrapper<Room> qw = new QueryWrapper<>();
+            qw.eq("name", room.getName());
+            qw.ne("id", room.getId());
+            if (roomMapper.selectCount(qw) > 0) {
+                throw new RuntimeException("房间编号已存在");
+            }
+        }
         roomMapper.updateById(room);
     }
 

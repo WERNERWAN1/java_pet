@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("b_ad")
+@TableName("ad")
 public class Ad extends BaseEntity {
     @TableId(value = "id", type = IdType.AUTO)
     public Long id;

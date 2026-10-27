@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("animal")
@@ -21,7 +23,7 @@ public class Animal extends BaseEntity {
     @TableField
     private String gender;
     @TableField
-    private Integer years;
+    private BigDecimal years;
     @TableField
     private String breed;
     @TableField

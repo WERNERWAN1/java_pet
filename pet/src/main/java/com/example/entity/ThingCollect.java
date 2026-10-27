@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("b_thing_collect")
+@TableName("thing_collect")
 public class ThingCollect extends BaseEntity {
     @TableId(value = "id", type = IdType.AUTO)
     public Long id;

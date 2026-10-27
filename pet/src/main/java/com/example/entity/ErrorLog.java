@@ -7,12 +7,13 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("b_error_log")
+@TableName("error_log")
 public class ErrorLog extends BaseEntity {
     @TableId(value = "id", type = IdType.AUTO)
     public Long id;
@@ -26,5 +27,6 @@ public class ErrorLog extends BaseEntity {
     public String content;
     @TableField
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     public Date logTime;
 }

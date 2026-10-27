@@ -4,7 +4,7 @@
 
 
     <select id="getList" resultType="com.example.entity.Thing">
-        select * from b_thing;
+        select * from thing;
     </select>
 
 

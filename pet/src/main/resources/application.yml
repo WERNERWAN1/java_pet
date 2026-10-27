@@ -4,7 +4,7 @@ server:
     context-path: /api
 #文件存储地址
 BASE_LOCATION: E:\java_code\werner\java_pet\pet\src\main\resources\file
-DB_NAME: java_pet_2
+DB_NAME: example_pet
 
 spring:
   servlet:
@@ -13,7 +13,7 @@ spring:
       max-request-size: 50MB
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/java_pet_2?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/example_pet?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root
     password: Aa123456
   # 统一日期序列化格式，避免 Map 返回 ISO 带时区的字符串

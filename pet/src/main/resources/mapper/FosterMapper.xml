@@ -8,7 +8,7 @@
                A.update_by, A.update_by_name, A.update_time,
                B.username as client_name
         from foster as A
-        left join b_user as B on (A.client_uid=B.id)
+        left join user as B on (A.client_uid=B.id)
         <where>
             <if test="progress != null and progress != ''">
                 and A.progress = #{progress}

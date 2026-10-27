@@ -5,10 +5,13 @@ import com.example.common.ResponeCode;
 import com.example.entity.Room;
 import com.example.service.RoomService;
 import com.example.service.BatchDeleteService;
+import com.example.service.FileUploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -21,6 +24,9 @@ public class RoomController {
     @Autowired
     BatchDeleteService batchDeleteService;
 
+    @Autowired
+    FileUploadService fileUploadService;
+
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public APIResponse list(String keyword) {
         List<Room> list = roomService.getRoomList(keyword);
@@ -29,14 +35,22 @@ public class RoomController {
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @Transactional
-    public APIResponse create(Room room) {
+    public APIResponse create(Room room) throws IOException {
+        String imageUrl = fileUploadService.uploadThingImage(room.getImageFile());
+        if (!StringUtils.isEmpty(imageUrl)) {
+            room.setAnimalPhoto(imageUrl);
+        }
         roomService.addRoom(room);
         return new APIResponse(ResponeCode.SUCCESS, "创建成功");
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     @Transactional
-    public APIResponse update(Room room) {
+    public APIResponse update(Room room) throws IOException {
+        String imageUrl = fileUploadService.uploadThingImage(room.getImageFile());
+        if (!StringUtils.isEmpty(imageUrl)) {
+            room.setAnimalPhoto(imageUrl);
+        }
         roomService.updateRoom(room);
         return new APIResponse(ResponeCode.SUCCESS, "更新成功");
     }

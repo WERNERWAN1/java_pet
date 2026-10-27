@@ -11,6 +11,10 @@
       <a-table size="middle" rowKey="id" :loading="data.loading" :columns="columns" :data-source="data.pageData"
           :scroll="{ x: 'max-content' }" :row-selection="rowSelection" :pagination="pagination">
         <template #bodyCell="{ text, record, column }">
+          <template v-if="column.key === 'animalPhoto'">
+            <img v-if="text" :src="getImgUrl(text)" style="width: 48px; height: 48px; object-fit: cover; border-radius: 4px;" />
+            <span v-else style="color: #ccc;">--</span>
+          </template>
           <template v-if="column.key === 'status'">
             <a-tag :color="text === '空闲' ? 'green' : text === '已占用' ? 'red' : 'orange'">{{ text }}</a-tag>
           </template>
@@ -31,6 +35,24 @@
             <a-col span="24"><a-form-item label="房间编号" name="name"><a-input placeholder="请输入房间编号" v-model:value="modal.form.name"></a-input></a-form-item></a-col>
             <a-col span="24"><a-form-item label="房间状态" name="status"><a-select placeholder="请选择状态" v-model:value="modal.form.status"><a-select-option value="空闲">空闲</a-select-option><a-select-option value="已占用">已占用</a-select-option><a-select-option value="维护中">维护中</a-select-option></a-select></a-form-item></a-col>
             <a-col span="24"><a-form-item label="寄养宠物" name="animal"><a-input placeholder="请输入寄养宠物名" v-model:value="modal.form.animal"></a-input></a-form-item></a-col>
+            <a-col span="24">
+              <a-form-item label="宠物照片">
+                <a-upload-dragger name="file" accept="image/*" :multiple="false" :before-upload="beforeUpload" :file-list="fileList" @remove="handleRemove">
+                  <p class="ant-upload-drag-icon">
+                    <template v-if="modal.form.photoUrl">
+                      <img :src="modal.form.photoUrl" style="width: 60px; height: 60px; object-fit: cover;" />
+                    </template>
+                    <template v-else-if="modal.form.animalPhoto">
+                      <img :src="getImgUrl(modal.form.animalPhoto)" style="width: 60px; height: 60px; object-fit: cover;" />
+                    </template>
+                    <template v-else>
+                      <file-image-outlined />
+                    </template>
+                  </p>
+                  <p class="ant-upload-text">请选择或拖拽宠物照片</p>
+                </a-upload-dragger>
+              </a-form-item>
+            </a-col>
           </a-row>
         </a-form>
       </a-modal>
@@ -41,13 +63,37 @@
 <script setup lang="ts">
 import {FormInstance, message} from 'ant-design-vue';
 import {createApi, listApi, updateApi, deleteApi} from '/@/api/room';
+import {BASE_URL} from "/@/store/constants";
 import {getFormatTime} from "/@/utils";
+import {FileImageOutlined} from '@ant-design/icons-vue';
+
+const getImgUrl = (img: string) => BASE_URL + '/api/staticfiles/image/' + img;
+
+const fileList = ref<any[]>([]);
+
+const beforeUpload = (file: File) => {
+  const fileName = new Date().getTime().toString() + '.' + file.type.substring(6);
+  const copyFile = new File([file], fileName);
+  modal.form.imageFile = copyFile;
+  const reader = new FileReader();
+  reader.onload = (e) => { modal.form.photoUrl = e.target?.result as string; };
+  reader.readAsDataURL(file);
+  fileList.value = [file];
+  return false;
+};
+
+const handleRemove = () => {
+  modal.form.imageFile = undefined;
+  modal.form.photoUrl = undefined;
+  fileList.value = [];
+};
 
 const columns = [
   {title: '序号', dataIndex: 'index', key: 'index', align: 'center', width: 60},
   {title: '房间编号', dataIndex: 'name', key: 'name', align: 'center'},
   {title: '房间状态', dataIndex: 'status', key: 'status', align: 'center'},
   {title: '寄养宠物', dataIndex: 'animal', key: 'animal', align: 'center'},
+  {title: '宠物照片', dataIndex: 'animalPhoto', key: 'animalPhoto', align: 'center', width: 80},
   {title: '创建人', dataIndex: 'createByName', key: 'createByName', align: 'center', width: 100, customRender: ({text}) => text || '--'},
   {title: '创建时间', dataIndex: 'createTime', key: 'createTime', align: 'center', width: 170, customRender: ({text}) => getFormatTime(text, true) || '--'},
   {title: '修改人', dataIndex: 'updateByName', key: 'updateByName', align: 'center', width: 100, customRender: ({text}) => text || '--'},
@@ -63,8 +109,18 @@ const updatePageData = () => { const start = (data.page - 1) * data.pageSize; da
 
 const modal = reactive({
   visile: false, editFlag: false, title: '',
-  form: {id: undefined as any, name: undefined as any, status: undefined as any, animal: undefined as any},
-  rules: {name: [{required: true, message: '请输入', trigger: 'change'}], status: [{required: true, message: '请选择', trigger: 'change'}]},
+  form: {id: undefined as any, name: undefined as any, status: undefined as any, animal: undefined as any, animalPhoto: undefined as any, imageFile: undefined as any, photoUrl: undefined as any},
+  rules: {
+    name: [
+      {required: true, message: '请输入', trigger: 'change'},
+      {validator: (_rule: any, value: string) => {
+        if (!value) return Promise.resolve();
+        const exists = data.allList.some(item => item.name === value && item.id !== modal.form.id);
+        return exists ? Promise.reject('房间编号已存在') : Promise.resolve();
+      }, trigger: 'blur'},
+    ],
+    status: [{required: true, message: '请选择', trigger: 'change'}],
+  },
 });
 const myform = ref<FormInstance>();
 onMounted(() => { getDataList(); });
@@ -80,13 +136,24 @@ const getDataList = () => {
 };
 const handleSearch = () => { data.page = 1; getDataList(); };
 const rowSelection = ref({onChange: (keys: (string | number)[]) => { data.selectedRowKeys = keys; }});
-const handleAdd = () => { resetModal(); modal.visile = true; modal.editFlag = false; modal.title = '新增房间'; for (const key in modal.form) { (modal.form as any)[key] = undefined; } };
-const handleEdit = (record: any) => { resetModal(); modal.visile = true; modal.editFlag = true; modal.title = '编辑房间'; for (const key in modal.form) { (modal.form as any)[key] = undefined; } for (const key in record) { (modal.form as any)[key] = record[key]; } };
+const handleAdd = () => { resetModal(); modal.visile = true; modal.editFlag = false; modal.title = '新增房间'; for (const key in modal.form) { (modal.form as any)[key] = undefined; } fileList.value = []; };
+const handleEdit = (record: any) => { resetModal(); modal.visile = true; modal.editFlag = true; modal.title = '编辑房间'; for (const key in modal.form) { (modal.form as any)[key] = undefined; } for (const key in record) { (modal.form as any)[key] = record[key]; } fileList.value = []; };
 const confirmDelete = (record: any) => { deleteApi({ids: record.id}).then(() => { getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); }); };
 const handleBatchDelete = () => { if (data.selectedRowKeys.length <= 0) { message.warn('请勾选删除项'); return; } deleteApi({ids: data.selectedRowKeys.join(',')}).then(() => { message.success('删除成功'); data.selectedRowKeys = []; getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); }); };
-const handleOk = () => { myform.value?.validate().then(() => { const api = modal.editFlag ? updateApi : createApi; api(modal.form).then(() => { hideModal(); getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); }); }).catch(() => { message.error('请填写必填项'); }); };
+const handleOk = () => {
+  myform.value?.validate().then(() => {
+    const formData = new FormData();
+    if (modal.form.id) formData.append('id', modal.form.id);
+    if (modal.form.name) formData.append('name', modal.form.name);
+    if (modal.form.status) formData.append('status', modal.form.status);
+    if (modal.form.animal) formData.append('animal', modal.form.animal);
+    if (modal.form.imageFile) formData.append('imageFile', modal.form.imageFile);
+    const api = modal.editFlag ? updateApi : createApi;
+    api(formData).then(() => { hideModal(); getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); });
+  }).catch(() => { message.error('请填写必填项'); });
+};
 const handleCancel = () => { hideModal(); };
-const resetModal = () => { myform.value?.resetFields(); };
+const resetModal = () => { myform.value?.resetFields(); fileList.value = []; };
 const hideModal = () => { modal.visile = false; };
 </script>
 

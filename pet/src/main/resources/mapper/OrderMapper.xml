@@ -25,9 +25,9 @@
                    WHEN 'goods' THEN G.price
                    ELSE T.price
                END as price
-        from b_order as A
-        join b_user as B on (A.user_id=B.id)
-        left join b_thing as T on (A.thing_id=T.id AND (A.order_type IS NULL OR A.order_type = 'thing'))
+        from order as A
+        join user as B on (A.user_id=B.id)
+        left join thing as T on (A.thing_id=T.id AND (A.order_type IS NULL OR A.order_type = 'thing'))
         left join goods as G on (A.thing_id=G.id AND A.order_type = 'goods')
         order by A.order_time desc;
     </select>
@@ -47,9 +47,9 @@
                    WHEN 'goods' THEN G.price
                    ELSE T.price
                END as price
-        from b_order as A
-        join b_user as B on (A.user_id=B.id)
-        left join b_thing as T on (A.thing_id=T.id AND (A.order_type IS NULL OR A.order_type = 'thing'))
+        from order as A
+        join user as B on (A.user_id=B.id)
+        left join thing as T on (A.thing_id=T.id AND (A.order_type IS NULL OR A.order_type = 'thing'))
         left join goods as G on (A.thing_id=G.id AND A.order_type = 'goods')
         where 2>1
         <if test="userId != null">
@@ -62,7 +62,7 @@
     </select>
 
     <update id="updateOrderType">
-        UPDATE b_order SET order_type = #{orderType} WHERE id = #{id}
+        UPDATE order SET order_type = #{orderType} WHERE id = #{id}
     </update>
 
 </mapper>

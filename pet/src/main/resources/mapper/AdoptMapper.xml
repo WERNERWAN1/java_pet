@@ -11,7 +11,7 @@
                C.gender as pet_gender, C.years as pet_years,
                C.health_condition as pet_health, C.introduction as pet_intro
         from adopt as A
-        left join b_user as B on (A.owner_uid=B.id)
+        left join user as B on (A.owner_uid=B.id)
         left join animal as C on (A.pet_uid=C.pid)
         <where>
             <if test="breed != null and breed != ''">

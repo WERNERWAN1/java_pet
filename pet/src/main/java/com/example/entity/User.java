@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("b_user")
+@TableName("user")
 public class User extends BaseEntity {
     public static final int NormalUser = 1;
     public static final int DemoUser = 2;

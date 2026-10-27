@@ -15,7 +15,7 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("b_thing")
+@TableName("thing")
 public class Thing extends BaseEntity {
     @TableId(value = "id", type = IdType.AUTO)
     public Long id;
