@@ -3,15 +3,15 @@
 <mapper namespace="com.example.mapper.OverviewMapper">
 
     <select id="getPopularThing" resultType="java.util.HashMap">
-        select A.thing_id, B.title, count(A.thing_id) as count
-        from order A join thing B on A.thing_id=B.id
-        group by A.thing_id
+        select A.product_id, B.title, count(A.product_id) as count
+        from order A join pet_product B on A.product_id=B.id
+        group by A.product_id
         order by count desc;
     </select>
 
     <select id="getPopularClassification" resultType="java.util.HashMap">
         select B.title, count(B.title) as count
-        from thing A join classification B on A.classification_id = B.id
+        from pet_product A join classification B on A.classification_id = B.id
         group by B.title
         order by count desc limit 5;
     </select>

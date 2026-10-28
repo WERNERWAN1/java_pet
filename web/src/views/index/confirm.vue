@@ -290,7 +290,7 @@ const handleJiesuan = () => {
     return
   }
   formData.append('userId', userId)
-  formData.append('thingId', pageData.id)
+  formData.append('productId', pageData.id)
   formData.append('count', pageData.count)
   if (pageData.remark) {
     formData.append('remark', pageData.remark)

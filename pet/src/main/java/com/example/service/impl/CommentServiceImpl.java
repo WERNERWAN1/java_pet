@@ -43,8 +43,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     }
 
     @Override
-    public List<Comment> getThingCommentList(String thingId, String order) {
-        return mapper.selectThingCommentList(thingId, order);
+    public List<Comment> getProductCommentList(String productId, String order) {
+        return mapper.selectProductCommentList(productId, order);
     }
 
     @Override

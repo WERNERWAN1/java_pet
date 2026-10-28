@@ -42,7 +42,7 @@ onMounted(()=>{
 })
 
 const handleClickTitle =(record)=> {
-  let text = router.resolve({name: 'detail', query: {id: record.thingId}})
+  let text = router.resolve({name: 'detail', query: {id: record.productId}})
   window.open(text.href, '_blank')
 }
 

@@ -36,7 +36,7 @@ CREATE TABLE `address` (
   CONSTRAINT `address_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='收货地址表';
 
-CREATE TABLE `adopt` (
+CREATE TABLE `adoption_record` (
   `record_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键标识',
   `owner_uid` bigint(20) DEFAULT NULL COMMENT '领养人编号',
   `pet_uid` bigint(20) DEFAULT NULL COMMENT '宠物编号',
@@ -51,7 +51,7 @@ CREATE TABLE `adopt` (
   PRIMARY KEY (`record_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='领养记录表';
 
-CREATE TABLE `animal` (
+CREATE TABLE `adoptable_pet` (
   `pid` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键标识',
   `photo` varchar(255) DEFAULT NULL COMMENT '形象照片',
   `nickname` varchar(255) DEFAULT NULL COMMENT '爱宠名称',
@@ -67,21 +67,21 @@ CREATE TABLE `animal` (
   `update_by_name` varchar(50) DEFAULT NULL COMMENT '修改人名称',
   `update_time` datetime DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`pid`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='宠物信息表';
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='待领养宠物信息表';
 
 CREATE TABLE `banner` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键标识',
   `image` varchar(100) DEFAULT NULL COMMENT '轮播图片地址',
   `create_time` datetime DEFAULT NULL COMMENT '创建时间',
-  `thing_id` bigint(20) DEFAULT NULL COMMENT '点击轮播后跳转的商品编号',
+  `product_id` bigint(20) DEFAULT NULL COMMENT '点击轮播后跳转的商品编号',
   `create_by` bigint(20) DEFAULT NULL COMMENT '创建人ID',
   `create_by_name` varchar(50) DEFAULT NULL COMMENT '创建人名称',
   `update_by` bigint(20) DEFAULT NULL COMMENT '修改人ID',
   `update_by_name` varchar(50) DEFAULT NULL COMMENT '修改人名称',
   `update_time` datetime DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`id`) USING BTREE,
-  KEY `b_banner_thing_id_3f307d00_fk_b_thing_id` (`thing_id`) USING BTREE,
-  CONSTRAINT `b_banner_thing_id_3f307d00_fk_b_thing_id` FOREIGN KEY (`thing_id`) REFERENCES `thing` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `banner_product_id_fk` (`product_id`) USING BTREE,
+  CONSTRAINT `banner_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `pet_product` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='首页轮播图表';
 
 CREATE TABLE `classification` (
@@ -102,7 +102,7 @@ CREATE TABLE `comment` (
   `comment_time` datetime DEFAULT NULL COMMENT '评论时间',
   `like_count` int(11) NOT NULL DEFAULT '0' COMMENT '点赞次数',
   `user_id` bigint(20) DEFAULT NULL,
-  `thing_id` bigint(20) DEFAULT NULL,
+  `product_id` bigint(20) DEFAULT NULL,
   `create_by` bigint(20) DEFAULT NULL COMMENT '创建人ID',
   `create_by_name` varchar(50) DEFAULT NULL COMMENT '创建人名称',
   `create_time` datetime DEFAULT NULL COMMENT '创建时间',
@@ -110,9 +110,9 @@ CREATE TABLE `comment` (
   `update_by_name` varchar(50) DEFAULT NULL COMMENT '修改人名称',
   `update_time` datetime DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`id`) USING BTREE,
-  KEY `b_comment_user_id_46f0670f_fk_b_user_id` (`user_id`) USING BTREE,
-  KEY `b_comment_thing_id_57ab492b_fk_b_thing_id` (`thing_id`) USING BTREE,
-  CONSTRAINT `b_comment_thing_id_57ab492b_fk_b_thing_id` FOREIGN KEY (`thing_id`) REFERENCES `thing` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  KEY `comment_user_id_fk` (`user_id`) USING BTREE,
+  KEY `comment_product_id_fk` (`product_id`) USING BTREE,
+  CONSTRAINT `comment_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `pet_product` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `comment_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='商品评论表';
 
@@ -200,10 +200,10 @@ CREATE TABLE `order` (
   `status` varchar(2) DEFAULT NULL COMMENT '订单状态：1-待发货/待支付，2-已发货/已支付，3-已完成，7-已取消',
   `order_time` datetime DEFAULT NULL COMMENT '订单时间',
   `pay_time` datetime DEFAULT NULL COMMENT '支付时间',
-  `thing_id` bigint(20) DEFAULT NULL,
+  `product_id` bigint(20) DEFAULT NULL,
   `unit_price` decimal(10,2) DEFAULT NULL COMMENT '成交单价快照（下单时固化）',
   `amount` decimal(10,2) DEFAULT NULL COMMENT '成交金额快照（单价×数量，下单时固化）',
-  `order_type` varchar(20) DEFAULT 'thing' COMMENT '订单类型(thing-宠物商品,goods-宠物商城用品)',
+  `order_type` varchar(20) DEFAULT 'pet_product' COMMENT '订单类型(pet_product-宠物商品,goods-宠物商城用品)',
   `user_id` bigint(20) DEFAULT NULL,
   `count` int(11) NOT NULL DEFAULT '0' COMMENT '购买数量',
   `order_number` varchar(20) DEFAULT NULL COMMENT '订单编号',
@@ -218,7 +218,7 @@ CREATE TABLE `order` (
   `update_by_name` varchar(50) DEFAULT NULL COMMENT '修改人名称',
   `update_time` datetime DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`id`) USING BTREE,
-  KEY `b_order_thing_id_4e345e2c_fk_b_thing_id` (`thing_id`) USING BTREE,
+  KEY `order_product_id_fk` (`product_id`) USING BTREE,
   KEY `b_order_user_id_64854046_fk_b_user_id` (`user_id`) USING BTREE,
   CONSTRAINT `order_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=73 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='订单表';
@@ -265,7 +265,7 @@ CREATE TABLE `tag` (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='商品标签字典表';
 
-CREATE TABLE `thing` (
+CREATE TABLE `pet_product` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键标识',
   `title` varchar(100) DEFAULT NULL COMMENT '商品标题（展示名称）',
   `nickname` varchar(20) DEFAULT NULL COMMENT '宠物昵称（待领养宠物名称）',
@@ -289,13 +289,13 @@ CREATE TABLE `thing` (
   `update_by_name` varchar(50) DEFAULT NULL COMMENT '修改人名称',
   `update_time` datetime DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`id`) USING BTREE,
-  KEY `b_thing_classification_id_47675ac4_fk_b_classification_id` (`classification_id`) USING BTREE,
-  CONSTRAINT `thing_ibfk_1` FOREIGN KEY (`classification_id`) REFERENCES `classification` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=97 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='商品表（宠物商品/待领养宠物）';
+  KEY `pet_product_classification_id_fk` (`classification_id`) USING BTREE,
+  CONSTRAINT `pet_product_classification_id_fk` FOREIGN KEY (`classification_id`) REFERENCES `classification` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=97 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='宠物商品表（宠物商品/待领养宠物）';
 
-CREATE TABLE `thing_collect` (
+CREATE TABLE `pet_product_collect` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键标识',
-  `thing_id` bigint(20) NOT NULL,
+  `product_id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
   `create_by` bigint(20) DEFAULT NULL COMMENT '创建人ID',
   `create_by_name` varchar(50) DEFAULT NULL COMMENT '创建人名称',
@@ -304,15 +304,15 @@ CREATE TABLE `thing_collect` (
   `update_by_name` varchar(50) DEFAULT NULL COMMENT '修改人名称',
   `update_time` datetime DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `b_thing_collect_thing_id_user_id_45b9f252_uniq` (`thing_id`,`user_id`) USING BTREE,
-  KEY `b_thing_collect_user_id_e5d69968_fk_b_user_id` (`user_id`) USING BTREE,
-  CONSTRAINT `b_thing_collect_thing_id_8edce8b3_fk_b_thing_id` FOREIGN KEY (`thing_id`) REFERENCES `thing` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `thing_collect_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  UNIQUE KEY `pet_product_collect_product_user_uniq` (`product_id`,`user_id`) USING BTREE,
+  KEY `pet_product_collect_user_id_fk` (`user_id`) USING BTREE,
+  CONSTRAINT `pet_product_collect_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `pet_product` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `pet_product_collect_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='商品收藏记录表（用户与商品多对多）';
 
-CREATE TABLE `thing_tag` (
+CREATE TABLE `pet_product_tag` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键标识',
-  `thing_id` bigint(20) NOT NULL COMMENT '商品编号',
+  `product_id` bigint(20) NOT NULL COMMENT '商品编号',
   `tag_id` bigint(20) NOT NULL COMMENT '标签编号',
   `create_by` bigint(20) DEFAULT NULL COMMENT '创建人ID',
   `create_by_name` varchar(50) DEFAULT NULL COMMENT '创建人名称',
@@ -321,15 +321,15 @@ CREATE TABLE `thing_tag` (
   `update_by_name` varchar(50) DEFAULT NULL COMMENT '修改人名称',
   `update_time` datetime DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `b_thing_tag_thing_id_tag_id_a5d426b2_uniq` (`thing_id`,`tag_id`) USING BTREE,
-  KEY `b_thing_tag_tag_id_d02b28a1_fk_b_tag_id` (`tag_id`) USING BTREE,
-  CONSTRAINT `b_thing_tag_tag_id_d02b28a1_fk_b_tag_id` FOREIGN KEY (`tag_id`) REFERENCES `tag` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `b_thing_tag_thing_id_fb8ecf3f_fk_b_thing_id` FOREIGN KEY (`thing_id`) REFERENCES `thing` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  UNIQUE KEY `pet_product_tag_product_tag_uniq` (`product_id`,`tag_id`) USING BTREE,
+  KEY `pet_product_tag_tag_id_fk` (`tag_id`) USING BTREE,
+  CONSTRAINT `pet_product_tag_tag_id_fk` FOREIGN KEY (`tag_id`) REFERENCES `tag` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `pet_product_tag_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `pet_product` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=472 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='商品-标签关联表（一个商品可打多个标签）';
 
-CREATE TABLE `thing_wish` (
+CREATE TABLE `pet_product_wish` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键标识',
-  `thing_id` bigint(20) NOT NULL,
+  `product_id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
   `create_by` bigint(20) DEFAULT NULL COMMENT '创建人ID',
   `create_by_name` varchar(50) DEFAULT NULL COMMENT '创建人名称',
@@ -338,10 +338,10 @@ CREATE TABLE `thing_wish` (
   `update_by_name` varchar(50) DEFAULT NULL COMMENT '修改人名称',
   `update_time` datetime DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `b_thing_wish_thing_id_user_id_9d647bbb_uniq` (`thing_id`,`user_id`) USING BTREE,
-  KEY `b_thing_wish_user_id_e2d94f6c_fk_b_user_id` (`user_id`) USING BTREE,
-  CONSTRAINT `b_thing_wish_thing_id_f0864b16_fk_b_thing_id` FOREIGN KEY (`thing_id`) REFERENCES `thing` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `thing_wish_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  UNIQUE KEY `pet_product_wish_product_user_uniq` (`product_id`,`user_id`) USING BTREE,
+  KEY `pet_product_wish_user_id_fk` (`user_id`) USING BTREE,
+  CONSTRAINT `pet_product_wish_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `pet_product` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `pet_product_wish_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='商品心愿单记录表（用户想要领养/购买意向）';
 
 CREATE TABLE `user` (

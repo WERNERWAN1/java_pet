@@ -133,10 +133,10 @@ import AvatarIcon from '/@/assets/images/avatar.jpg';
 import {
   detailApi,
   listApi as listThingList,
-} from '/@/api/thing'
-import {listThingCommentsApi, createApi as createCommentApi, likeApi} from '/@/api/comment'
-import {wishApi} from '/@/api/thingWish'
-import {collectApi} from '/@/api/thingCollect'
+} from '/@/api/petProduct'
+import {listProductCommentsApi, createApi as createCommentApi, likeApi} from '/@/api/comment'
+import {wishApi} from '/@/api/petProductWish'
+import {collectApi} from '/@/api/petProductCollect'
 import {BASE_URL} from "/@/store/constants";
 import {useRoute, useRouter} from "vue-router/dist/vue-router";
 import {useUserStore} from "/@/store";
@@ -183,7 +183,7 @@ const getThingDetail =()=> {
 const addToWish =()=> {
   let userId = userStore.user_id
   if (userId) {
-    wishApi({thingId: thingId.value, userId: userId}).then(res => {
+    wishApi({productId: thingId.value, userId: userId}).then(res => {
       message.success(res.msg)
       getThingDetail()
     }).catch(err => {
@@ -196,7 +196,7 @@ const addToWish =()=> {
 const collect =()=> {
   let userId = userStore.user_id
   if (userId) {
-    collectApi({thingId: thingId.value, userId: userId}).then(res => {
+    collectApi({productId: thingId.value, userId: userId}).then(res => {
       message.success(res.msg)
       getThingDetail()
     }).catch(err => {
@@ -260,7 +260,7 @@ const sendComment =()=> {
   commentRef.value.value = ''
   let userId = userStore.user_id
   if (userId) {
-    createCommentApi({content: text, thingId: thingId.value, userId: userId}).then(res => {
+    createCommentApi({content: text, productId: thingId.value, userId: userId}).then(res => {
       getCommentList()
     }).catch(err => {
       console.log(err)
@@ -278,7 +278,7 @@ const like =(commentId)=> {
   })
 }
 const getCommentList =()=> {
-  listThingCommentsApi({thingId: thingId.value, order: order.value}).then(res => {
+  listProductCommentsApi({productId: thingId.value, order: order.value}).then(res => {
     res.data.forEach(item => {
       item.commentTime = getFormatTime(item.commentTime, true)
     })

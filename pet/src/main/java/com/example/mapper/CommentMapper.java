@@ -11,7 +11,7 @@ public interface CommentMapper extends BaseMapper<Comment> {
 
     List<Comment> getList();
 
-    List<Comment> selectThingCommentList(String thingId, String order);
+    List<Comment> selectProductCommentList(String productId, String order);
 
     List<Comment> selectUserCommentList(String userId);
 }

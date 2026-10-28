@@ -14,11 +14,11 @@
       <a-layout-sider v-model="collapsed" collapsible >
         <a-menu style="overflow:auto; overflow-x: hidden;" v-model:selectedKeys="selectedKeys" theme="dark" mode="inline" @click="handleClick">
 
-          <a-menu-item key="thing">
+          <a-menu-item key="petProduct">
             <database-outlined/>
             <span>宠物管理</span>
           </a-menu-item>
-          <a-menu-item key="animal">
+          <a-menu-item key="adoptablePet">
             <database-outlined/>
             <span>待领养宠物</span>
           </a-menu-item>
@@ -26,7 +26,7 @@
             <home-outlined/>
             <span>宠物房间管理</span>
           </a-menu-item>
-          <a-menu-item key="adopt">
+          <a-menu-item key="adoptionRecord">
             <user-outlined/>
             <span>宠物领养管理</span>
           </a-menu-item>

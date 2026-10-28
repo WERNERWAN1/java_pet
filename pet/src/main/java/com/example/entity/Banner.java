@@ -19,5 +19,5 @@ public class Banner extends BaseEntity {
     @TableField(exist = false)
     public MultipartFile imageFile;
     @TableField
-    public Long thingId;
+    public Long productId;
 }

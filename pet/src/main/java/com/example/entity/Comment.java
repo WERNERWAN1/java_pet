@@ -30,7 +30,7 @@ public class Comment extends BaseEntity {
     @TableField(exist = false)
     public String username; // 用户名
     @TableField
-    public Long thingId;
+    public Long productId;
     @TableField(exist = false)
     public String title; // 商品名称
     @TableField(exist = false)

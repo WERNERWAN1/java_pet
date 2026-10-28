@@ -65,7 +65,7 @@
         <div class="bottom flex-view">
           <div class="left">
             <span class="text">共{{item.count}}件宠物</span>
-            <span class="open" @click="handleDetail(item.thingId)">宠物详情</span>
+            <span class="open" @click="handleDetail(item.productId)">宠物详情</span>
           </div>
           <div class="right flex-view">
             <span class="text">总计</span>
@@ -130,9 +130,9 @@ const getOrderList= ()=> {
     loading.value = false
   })
 }
-const handleDetail =(thingId) =>{
+const handleDetail =(productId) =>{
   // 跳转新页面
-  let text = router.resolve({name: 'detail', query: {id: thingId}})
+  let text = router.resolve({name: 'detail', query: {id: productId}})
   window.open(text.href, '_blank')
 }
 const handleCancel =(item)=> {

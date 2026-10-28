@@ -102,8 +102,8 @@ import SafeIconImage from '/@/assets/images/setting-safe-icon.svg'
 import PushIconImage from '/@/assets/images/setting-push-icon.svg'
 import MessageIconImage from '/@/assets/images/setting-msg-icon.svg'
 
-import {userCollectListApi} from '/@/api/thingCollect'
-import {userWishListApi} from '/@/api/thingWish'
+import {userCollectListApi} from '/@/api/petProductCollect'
+import {userWishListApi} from '/@/api/petProductWish'
 import {detailApi} from '/@/api/user'
 import {useUserStore} from '/@/store';
 import {BASE_URL} from "/@/store/constants";

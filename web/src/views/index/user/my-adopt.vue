@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import {listApi, updateApi} from '/@/api/adopt';
+import {listApi, updateApi} from '/@/api/adoptionRecord';
 import {message} from 'ant-design-vue';
 
 const loading = ref(false);

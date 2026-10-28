@@ -2,11 +2,11 @@ package com.example.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.entity.Order;
-import com.example.entity.Thing;
+import com.example.entity.PetProduct;
 import com.example.entity.VisitData;
 import com.example.mapper.OrderMapper;
 import com.example.mapper.OverviewMapper;
-import com.example.mapper.ThingMapper;
+import com.example.mapper.PetProductMapper;
 import com.example.service.OverviewService;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ import java.util.*;
 public class OverviewServiceImpl implements OverviewService {
     
     @Autowired
-    private ThingMapper thingMapper;
+    private PetProductMapper petProductMapper;
     
     @Autowired
     private OrderMapper orderMapper;
@@ -71,8 +71,8 @@ public class OverviewServiceImpl implements OverviewService {
         Map<String, Object> map = new HashMap<>();
         
         // 商品总数
-        QueryWrapper<Thing> queryWrapper = new QueryWrapper<>();
-        long spzs = thingMapper.selectCount(queryWrapper);
+        QueryWrapper<PetProduct> queryWrapper = new QueryWrapper<>();
+        long spzs = petProductMapper.selectCount(queryWrapper);
         map.put("spzs", spzs);
         
         long now = System.currentTimeMillis();
@@ -80,7 +80,7 @@ public class OverviewServiceImpl implements OverviewService {
         
         // 七日新增
         queryWrapper.ge("create_time", sevenMillis);
-        long qrxz = thingMapper.selectCount(queryWrapper);
+        long qrxz = petProductMapper.selectCount(queryWrapper);
         map.put("qrxz", qrxz);
         
         // 未付订单

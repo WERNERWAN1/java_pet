@@ -29,7 +29,7 @@ public class Order extends BaseEntity {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     public Date payTime;
     @TableField
-    public Long thingId;
+    public Long productId;
     /**
      * 成交单价快照：下单瞬间从商品表固化到订单，避免商品后续调价导致历史订单金额失真。
      * 使用 BigDecimal 定点数，规避 float/double 的二进制精度误差。
@@ -42,7 +42,7 @@ public class Order extends BaseEntity {
     @TableField
     public BigDecimal amount;
     @TableField
-    public String orderType; // 订单类型(thing-宠物商品,goods-宠物商城用品)
+    public String orderType; // 订单类型(pet_product-宠物商品,goods-宠物商城用品)
     @TableField
     public Long userId;
     @TableField

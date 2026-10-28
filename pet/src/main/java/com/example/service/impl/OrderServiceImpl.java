@@ -3,11 +3,11 @@ package com.example.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.Goods;
 import com.example.entity.Order;
-import com.example.entity.Thing;
+import com.example.entity.PetProduct;
 import com.example.service.OrderService;
 import com.example.mapper.GoodsMapper;
 import com.example.mapper.OrderMapper;
-import com.example.mapper.ThingMapper;
+import com.example.mapper.PetProductMapper;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     OrderMapper mapper;
     
     @Autowired
-    ThingMapper thingMapper;
+    PetProductMapper petProductMapper;
 
     @Autowired
     GoodsMapper goodsMapper;
@@ -40,12 +40,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     @Override
     public void createOrder(Order order, String orderType) {
         int count = (order.getCount() != null) ? order.getCount() : 1;
-        String type = (orderType != null && !orderType.isEmpty()) ? orderType : "thing";
+        String type = (orderType != null && !orderType.isEmpty()) ? orderType : "pet_product";
         BigDecimal unitPrice;
 
         if ("goods".equals(type)) {
             // 宠物用品订单 - 查 goods 表
-            Goods goods = goodsMapper.selectById(order.getThingId());
+            Goods goods = goodsMapper.selectById(order.getProductId());
             if (goods == null) {
                 throw new RuntimeException("商品不存在");
             }
@@ -59,20 +59,20 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             goods.setNum(goods.getNum() - count);
             goodsMapper.updateById(goods);
         } else {
-            // 宠物商品订单 - 查 b_thing 表
-            Thing thing = thingMapper.selectById(order.getThingId());
-            if (thing == null) {
+            // 宠物商品订单 - 查 pet_product 表
+            PetProduct product = petProductMapper.selectById(order.getProductId());
+            if (product == null) {
                 throw new RuntimeException("商品不存在");
             }
-            if (thing.getStock() == null || thing.getStock() <= 0) {
+            if (product.getStock() == null || product.getStock() <= 0) {
                 throw new RuntimeException("商品已售罄");
             }
-            if (thing.getStock() < count) {
-                throw new RuntimeException("库存不足，当前库存：" + thing.getStock());
+            if (product.getStock() < count) {
+                throw new RuntimeException("库存不足，当前库存：" + product.getStock());
             }
-            unitPrice = thing.getPrice();
-            thing.setStock(thing.getStock() - count);
-            thingMapper.updateById(thing);
+            unitPrice = product.getPrice();
+            product.setStock(product.getStock() - count);
+            petProductMapper.updateById(product);
         }
 
         // 金额快照：在下单瞬间把成交单价与成交金额固化到订单，

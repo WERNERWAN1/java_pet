@@ -6,17 +6,17 @@
         select A.*, B.username, C.title
         from comment as A
         join user as B on (A.user_id=B.id)
-        join thing as C on (A.thing_id=C.id)
+        join pet_product as C on (A.product_id=C.id)
         order by A.comment_time desc;
     </select>
 
-    <select id="selectThingCommentList" parameterType="map" resultType="com.example.entity.Comment">
+    <select id="selectProductCommentList" parameterType="map" resultType="com.example.entity.Comment">
         select A.*, B.username, C.title
         from comment as A
                  join user as B on (A.user_id=B.id)
-                 join thing as C on (A.thing_id=C.id)
-        <if test="thingId != null">
-            where A.thing_id=#{thingId}
+                 join pet_product as C on (A.product_id=C.id)
+        <if test="productId != null">
+            where A.product_id=#{productId}
         </if>
         <if test="order == 'recent'">
             order by A.comment_time desc;
@@ -30,7 +30,7 @@
         select A.*, B.username, C.title, C.cover
         from comment as A
         join user as B on (A.user_id=B.id)
-        join thing as C on (A.thing_id=C.id)
+        join pet_product as C on (A.product_id=C.id)
         <if test="userId != null">
             where A.user_id=#{userId}
         </if>

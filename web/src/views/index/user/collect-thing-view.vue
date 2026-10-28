@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import {message} from 'ant-design-vue';
-import {userCollectListApi, unCollectApi} from '/@/api/thingCollect'
+import {userCollectListApi, unCollectApi} from '/@/api/petProductCollect'
 import {BASE_URL} from "/@/store/constants";
 import {useUserStore} from "/@/store";
 

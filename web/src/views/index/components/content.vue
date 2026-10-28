@@ -84,7 +84,7 @@
 <script setup>
 import {listApi as listClassificationList} from '/@/api/classification'
 import {listApi as listTagList} from '/@/api/tag'
-import {listApi as listThingList} from '/@/api/thing'
+import {listApi as listThingList} from '/@/api/petProduct'
 import {listApi as listAdList} from '/@/api/ad'
 import {BASE_URL} from "/@/store/constants";
 import {useUserStore} from "/@/store";

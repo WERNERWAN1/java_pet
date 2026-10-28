@@ -1,0 +1,87 @@
+package com.example.controller;
+
+import com.example.common.APIResponse;
+import com.example.common.ResponeCode;
+import com.example.entity.PetProduct;
+import com.example.permission.Access;
+import com.example.permission.AccessLevel;
+import com.example.service.BatchDeleteService;
+import com.example.service.FileUploadService;
+import com.example.service.PetProductService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
+import java.util.List;
+
+@RestController
+@RequestMapping("/petProduct")
+public class PetProductController {
+
+    private final static Logger logger = LoggerFactory.getLogger(PetProductController.class);
+
+    @Autowired
+    PetProductService service;
+    
+    @Autowired
+    FileUploadService fileUploadService;
+    
+    @Autowired
+    BatchDeleteService batchDeleteService;
+
+    @RequestMapping(value = "/list", method = RequestMethod.GET)
+    public APIResponse list(String keyword, String sort, String c, String tag){
+        List<PetProduct> list =  service.getPetProductList(keyword, sort, c, tag);
+
+        return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
+    }
+
+    @RequestMapping(value = "/detail", method = RequestMethod.GET)
+    public APIResponse detail(String id){
+        PetProduct petProduct =  service.getPetProductById(id);
+
+        return new APIResponse(ResponeCode.SUCCESS, "查询成功", petProduct);
+    }
+
+    @Access(level = AccessLevel.ADMIN)
+    @RequestMapping(value = "/create", method = RequestMethod.POST)
+    @Transactional
+    public APIResponse create(PetProduct petProduct) throws IOException {
+        // 处理图片上传
+        String imageUrl = fileUploadService.uploadThingImage(petProduct.getImageFile());
+        if(!StringUtils.isEmpty(imageUrl)) {
+            petProduct.setCover(imageUrl);
+        }
+
+        service.createPetProduct(petProduct);
+        return new APIResponse(ResponeCode.SUCCESS, "创建成功");
+    }
+
+    @Access(level = AccessLevel.ADMIN)
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
+    public APIResponse delete(String ids){
+        batchDeleteService.batchDelete(ids, service::deletePetProduct);
+        return new APIResponse(ResponeCode.SUCCESS, "删除成功");
+    }
+
+    @Access(level = AccessLevel.ADMIN)
+    @RequestMapping(value = "/update", method = RequestMethod.POST)
+    @Transactional
+    public APIResponse update(PetProduct petProduct) throws IOException {
+        // 处理图片上传
+        String imageUrl = fileUploadService.uploadThingImage(petProduct.getImageFile());
+        if(!StringUtils.isEmpty(imageUrl)) {
+            petProduct.setCover(imageUrl);
+        }
+
+        service.updatePetProduct(petProduct);
+        return new APIResponse(ResponeCode.SUCCESS, "更新成功");
+    }
+
+}

@@ -27,8 +27,8 @@
                END as price
         from order as A
         join user as B on (A.user_id=B.id)
-        left join thing as T on (A.thing_id=T.id AND (A.order_type IS NULL OR A.order_type = 'thing'))
-        left join goods as G on (A.thing_id=G.id AND A.order_type = 'goods')
+        left join pet_product as T on (A.product_id=T.id AND (A.order_type IS NULL OR A.order_type = 'pet_product'))
+        left join goods as G on (A.product_id=G.id AND A.order_type = 'goods')
         order by A.order_time desc;
     </select>
 
@@ -49,8 +49,8 @@
                END as price
         from order as A
         join user as B on (A.user_id=B.id)
-        left join thing as T on (A.thing_id=T.id AND (A.order_type IS NULL OR A.order_type = 'thing'))
-        left join goods as G on (A.thing_id=G.id AND A.order_type = 'goods')
+        left join pet_product as T on (A.product_id=T.id AND (A.order_type IS NULL OR A.order_type = 'pet_product'))
+        left join goods as G on (A.product_id=G.id AND A.order_type = 'goods')
         where 2>1
         <if test="userId != null">
             and A.user_id=#{userId}

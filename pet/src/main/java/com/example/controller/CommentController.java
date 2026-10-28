@@ -38,9 +38,9 @@ public class CommentController {
 
 
     // 商品的所有评论
-    @RequestMapping(value = "/listThingComments", method = RequestMethod.GET)
-    public APIResponse listThingComments(String thingId, String order){
-        List<Comment> list =  service.getThingCommentList(thingId, order);
+    @RequestMapping(value = "/listProductComments", method = RequestMethod.GET)
+    public APIResponse listProductComments(String productId, String order){
+        List<Comment> list =  service.getProductCommentList(productId, order);
         return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
     }
 

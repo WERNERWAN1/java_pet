@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import {listApi as listThingList} from '/@/api/thing'
+import {listApi as listThingList} from '/@/api/petProduct'
 import {BASE_URL} from "/@/store/constants";
 import {useUserStore} from "/@/store";
 

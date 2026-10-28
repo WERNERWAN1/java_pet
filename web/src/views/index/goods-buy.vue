@@ -113,7 +113,7 @@ const handleSubmit = () => {
   }
   submitting.value = true;
   createApi({
-    thingId: goods.value.id,
+    productId: goods.value.id,
     orderType: 'goods',
     userId: userId,
     count: form.num,

@@ -27,8 +27,8 @@
 <script setup>
 import Header from '/@/views/index/components/header.vue';
 import Footer from '/@/views/index/components/footer.vue';
-import {detailApi} from '/@/api/animal';
-import {createApi} from '/@/api/adopt';
+import {detailApi} from '/@/api/adoptablePet';
+import {createApi} from '/@/api/adoptionRecord';
 import {BASE_URL} from "/@/store/constants";
 import {message} from 'ant-design-vue';
 

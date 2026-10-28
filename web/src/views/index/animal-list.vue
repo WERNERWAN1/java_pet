@@ -32,7 +32,7 @@
 <script setup>
 import Header from '/@/views/index/components/header.vue';
 import Footer from '/@/views/index/components/footer.vue';
-import {listApi} from '/@/api/animal';
+import {listApi} from '/@/api/adoptablePet';
 import {BASE_URL} from "/@/store/constants";
 
 const router = useRouter();

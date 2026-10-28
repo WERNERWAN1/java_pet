@@ -120,7 +120,10 @@
               </a-col>
               <a-col span="12">
                 <a-form-item label="性别">
-                  <a-input placeholder="请输入" v-model:value="modal.form.sex" style="width: 100%;"></a-input>
+                  <a-select placeholder="请选择性别" v-model:value="modal.form.sex" style="width: 100%;">
+                    <a-select-option value="公">公</a-select-option>
+                    <a-select-option value="母">母</a-select-option>
+                  </a-select>
                 </a-form-item>
               </a-col>
               <a-col span="12">
@@ -151,7 +154,7 @@
 
 <script setup lang="ts">
 import { FormInstance, message, SelectProps } from 'ant-design-vue';
-import { createApi, listApi, updateApi, deleteApi } from '/@/api/thing';
+import { createApi, listApi, updateApi, deleteApi } from '/@/api/petProduct';
 import {listApi as listClassificationApi} from '/@/api/classification'
 import {listApi as listTagApi} from '/@/api/tag'
 import {BASE_URL} from "/@/store/constants";

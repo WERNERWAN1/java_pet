@@ -25,7 +25,7 @@
 
 <script setup>
 import {message} from 'ant-design-vue';
-import {userWishListApi, unWishApi} from '/@/api/thingWish'
+import {userWishListApi, unWishApi} from '/@/api/petProductWish'
 import {BASE_URL} from "/@/store/constants";
 import {useUserStore} from "/@/store";
 
