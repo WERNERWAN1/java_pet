@@ -57,7 +57,7 @@
               <span v-else style="color: #ccc;">无</span>
             </template>
             <template v-if="column.key === 'status'">
-              <a-tag :color="text === '已处理' ? 'green' : 'orange'">{{ text }}</a-tag>
+              <a-tag :color="Number(text) === 2 ? 'green' : 'orange'">{{ submitStatusText[Number(text)] || text }}</a-tag>
             </template>
           </template>
         </a-table>
@@ -83,6 +83,9 @@ const reportList = ref([]);
 const fileList = ref([]);
 
 const getImgUrl = (img) => BASE_URL + '/api/staticfiles/image/' + img;
+
+// 处理状态：1-待处理，2-已处理
+const submitStatusText = {1: '待处理', 2: '已处理'};
 
 const form = reactive({name: '', imageFile: null, imgUrl: ''});
 const rules = {name: [{required: true, message: '请输入情况说明', trigger: 'change'}]};
@@ -126,7 +129,7 @@ const handleSubmit = () => {
     const formData = new FormData();
     formData.append('name', form.name);
     formData.append('time', new Date().toLocaleString());
-    formData.append('status', '待处理');
+    formData.append('status', '1'); // 1-待处理
     if (form.imageFile) {
       formData.append('imageFile', form.imageFile);
     }

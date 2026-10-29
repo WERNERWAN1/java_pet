@@ -114,7 +114,7 @@ const handleSubmit = () => {
   submitting.value = true;
   createApi({
     productId: goods.value.id,
-    orderType: 'goods',
+    orderType: 2, // 2-宠物商城用品（后端 order_type 为数字枚举）
     userId: userId,
     count: form.num,
     receiverName: form.username,

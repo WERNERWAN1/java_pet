@@ -16,6 +16,8 @@ public interface CommentService {
 
     List<Comment> getUserCommentList(String userId);
     
+    void deleteCommentByUser(String id, Long userId);
+
     // 点赞
     void likeComment(String commentId);
 }

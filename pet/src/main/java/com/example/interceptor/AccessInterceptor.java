@@ -72,7 +72,7 @@ public class AccessInterceptor extends HandlerInterceptorAdapter {
             String token = request.getHeader("ADMINTOKEN");
             logger.info("token==>" + token);
             User user = userService.getUserByToken(token);
-            if(user != null && user.getRole().equals(String.valueOf(User.AdminUser))){
+            if(user != null && user.getRole() != null && user.getRole() == User.AdminUser){
                 return true;
             }else {
                 APIResponse apiResponse = new APIResponse(ResponeCode.FAIL, "无操作权限");
@@ -86,7 +86,7 @@ public class AccessInterceptor extends HandlerInterceptorAdapter {
             String token = request.getHeader("TOKEN");
             logger.info("token==>" + token);
             User user = userService.getUserByToken(token);
-            if(user != null && user.getRole().equals(String.valueOf(User.NormalUser))){
+            if(user != null && user.getRole() != null && user.getRole() == User.NormalUser){
                 return true;
             }else {
                 APIResponse apiResponse = new APIResponse(ResponeCode.FAIL, "未登录");

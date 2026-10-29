@@ -1,5 +1,6 @@
 package com.example.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -16,12 +17,13 @@ public class Room extends BaseEntity {
     private Long id;
     @TableField
     private String name;
+    /** 房间状态：1-空闲，2-已占用，3-维护中 */
     @TableField
-    private String status;
-    @TableField
+    private Integer status;
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String animal;
     /** 寄养宠物照片（存文件名） */
-    @TableField
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String animalPhoto;
 
     /** 前端上传的文件（不映射数据库） */

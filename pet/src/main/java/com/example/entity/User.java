@@ -31,11 +31,13 @@ public class User extends BaseEntity {
     @TableField
     public String email;
     @TableField
+    public String gender;
+    @TableField
     public String description;
     @TableField
-    public String role;
+    public Integer role;
     @TableField
-    public String status;
+    public Integer status;
     @TableField
     public Integer score;
     @TableField
@@ -47,5 +49,5 @@ public class User extends BaseEntity {
     @TableField
     public String pushEmail;
     @TableField
-    public String pushSwitch;
+    public Integer pushSwitch;
 }

@@ -43,7 +43,7 @@ const getUserInfo =()=> {
   detailApi({userId: userId}).then(res => {
     if (res.data) {
       pushEmail.value = res.data.pushEmail
-      if(res.data.pushSwitch === '1'){
+      if(res.data.pushSwitch === 1){
         pushSwitch.value = true
       }
     }

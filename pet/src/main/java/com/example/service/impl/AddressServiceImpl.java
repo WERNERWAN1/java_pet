@@ -26,22 +26,29 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, Address> impl
 
     @Override
     public void createAddress(Address address) {
-        // 如果设置为默认地址，则先取消其他默认地址
+        address.setCreateTime(new Date());
+        mapper.insert(address);
         if ("1".equals(address.getDef())) {
             setDefaultAddress(address.getUserId(), address.getId());
         }
-        address.setCreateTime(new Date());
-        mapper.insert(address);
     }
 
     @Override
     public void deleteAddress(String id) {
+        Address address = mapper.selectById(id);
         mapper.deleteById(id);
+        if (address != null && "1".equals(address.getDef())) {
+            List<Address> remaining = getAddressList(address.getUserId());
+            if (!remaining.isEmpty()) {
+                Address earliest = remaining.get(remaining.size() - 1);
+                earliest.setDef("1");
+                mapper.updateById(earliest);
+            }
+        }
     }
 
     @Override
     public void updateAddress(Address address) {
-        // 如果设置为默认地址，则先取消其他默认地址
         if ("1".equals(address.getDef())) {
             setDefaultAddress(address.getUserId(), address.getId());
         }
@@ -50,7 +57,6 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, Address> impl
     
     @Override
     public void setDefaultAddress(Long userId, Long addressId) {
-        // 将用户的所有地址设置为非默认
         List<Address> addresses = getAddressList(userId);
         for (Address address : addresses) {
             if (!address.getId().equals(addressId)) {

@@ -5,11 +5,11 @@
       <div class="table-operations">
         <a-space>
           <a-select v-model:value="data.progress" placeholder="请选择状态" style="width: 180px;" allow-clear>
-            <a-select-option value="已领回">已领回</a-select-option>
-            <a-select-option value="寄养中">寄养中</a-select-option>
-            <a-select-option value="已预约">已预约</a-select-option>
-            <a-select-option value="待处理">待处理</a-select-option>
-            <a-select-option value="已完成">已完成</a-select-option>
+            <a-select-option :value="4">已领回</a-select-option>
+            <a-select-option :value="2">寄养中</a-select-option>
+            <a-select-option :value="5">已预约</a-select-option>
+            <a-select-option :value="1">待处理</a-select-option>
+            <a-select-option :value="3">已完成</a-select-option>
           </a-select>
           <a-button type="primary" @click="handleSearch">查询</a-button>
           <a-button style="background: #fff; color: #e6a23c; border: 1px solid #e6a23c;" @click="handleReset">重置</a-button>
@@ -28,11 +28,18 @@
       >
         <template #bodyCell="{ text, record, column }">
           <template v-if="column.key === 'progress'">
-            <a-tag :color="getProgressColor(text)">{{ text }}</a-tag>
+            <a-tag :color="getProgressColor(text)">{{ progressText[Number(text)] || text }}</a-tag>
+          </template>
+          <template v-if="column.key === 'pet_photo'">
+            <img v-if="text" :src="getImgUrl(text)" style="width: 48px; height: 48px; object-fit: cover; border-radius: 4px;" />
+            <span v-else>-</span>
+          </template>
+          <template v-if="column.key === 'pet_weight'">
+            {{ text ? text + ' kg' : '-' }}
           </template>
           <template v-if="column.key === 'operation'">
             <a-space>
-              <a-button v-if="record.progress === '待处理'" type="primary" size="small" @click="handleAudit(record)">审核</a-button>
+              <a-button v-if="Number(record.progress) === 1" type="primary" size="small" @click="handleAudit(record)">审核</a-button>
               <a-popconfirm title="确定删除该寄养记录?" ok-text="是" cancel-text="否" @confirm="handleDelete(record)">
                 <a-button type="link" danger style="border: 1px solid #f56c6c; border-radius: 4px; padding: 0 12px; height: 28px; line-height: 26px;">删除</a-button>
               </a-popconfirm>
@@ -55,26 +62,32 @@
       <a-descriptions :column="1" bordered size="small">
         <a-descriptions-item label="用户">{{ auditModal.record?.client_name || '-' }}</a-descriptions-item>
         <a-descriptions-item label="宠物昵称">{{ auditModal.record?.pet_name || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="体重">{{ auditModal.record?.pet_weight ? auditModal.record.pet_weight + ' kg' : '-' }}</a-descriptions-item>
+        <a-descriptions-item label="宠物照片">
+          <img v-if="auditModal.record?.pet_photo" :src="getImgUrl(auditModal.record.pet_photo)" style="max-width: 220px; border-radius: 4px;" />
+          <span v-else>未上传</span>
+        </a-descriptions-item>
+        <a-descriptions-item label="寄养备注">{{ auditModal.record?.remark || '-' }}</a-descriptions-item>
         <a-descriptions-item label="入住日期">{{ auditModal.record?.start_date || '-' }}</a-descriptions-item>
         <a-descriptions-item label="寄养天数">{{ auditModal.record?.duration || '-' }}天</a-descriptions-item>
         <a-descriptions-item label="当前状态">
-          <a-tag color="red">{{ auditModal.record?.progress || '-' }}</a-tag>
+          <a-tag color="red">{{ progressText[Number(auditModal.record?.progress)] || '-' }}</a-tag>
         </a-descriptions-item>
       </a-descriptions>
       <div style="margin-top: 16px;">
         <div style="margin-bottom: 12px;">
           <span style="margin-right: 12px;">审核结果：</span>
           <a-radio-group v-model:value="auditModal.result">
-            <a-radio value="寄养中">通过（开始寄养）</a-radio>
-            <a-radio value="已预约">通过（已预约）</a-radio>
-            <a-radio value="已领回">拒绝（已领回）</a-radio>
+            <a-radio :value="2">通过（开始寄养）</a-radio>
+            <a-radio :value="5">通过（已预约）</a-radio>
+            <a-radio :value="4">拒绝（已领回）</a-radio>
           </a-radio-group>
         </div>
         <div>
           <span style="margin-right: 12px;">分配房间：</span>
           <a-select v-model:value="auditModal.cageNo" placeholder="请选择房间" style="width: 200px;" allow-clear>
-            <a-select-option v-for="r in roomList" :key="r.id" :value="r.id" :disabled="r.status === '已占用'">
-              {{ r.name }} {{ r.status === '已占用' ? '(已占用)' : '' }}
+            <a-select-option v-for="r in roomList" :key="r.id" :value="r.id" :disabled="Number(r.status) === 2">
+              {{ r.name }} {{ Number(r.status) === 2 ? '(已占用)' : '' }}
             </a-select-option>
           </a-select>
         </div>
@@ -88,15 +101,24 @@ import {message} from 'ant-design-vue';
 import {listApi, updateApi, deleteApi} from '/@/api/foster';
 import {listApi as listRoomApi} from '/@/api/room';
 import {getFormatTime} from "/@/utils";
+import {BASE_URL} from "/@/store/constants";
+
+const getImgUrl = (img) => BASE_URL + '/api/staticfiles/image/' + img;
+
+// 寄养进度：1-待处理，2-寄养中，3-已完成，4-已领回，5-已预约
+const progressText: Record<number, string> = {1: '待处理', 2: '寄养中', 3: '已完成', 4: '已领回', 5: '已预约'};
 
 const getProgressColor = (progress) => {
-  return {'已领回': 'green', '已完成': 'green', '寄养中': 'blue', '已预约': 'orange', '待处理': 'red'}[progress] || 'default';
+  return {4: 'green', 3: 'green', 2: 'blue', 5: 'orange', 1: 'red'}[Number(progress)] || 'default';
 };
 
 const columns = [
   {title: '序号', dataIndex: 'index', key: 'index', align: 'center', width: 80, sorter: (a, b) => a.index - b.index},
   {title: '用户', dataIndex: 'client_name', key: 'client_name', align: 'center'},
   {title: '宠物昵称', dataIndex: 'pet_name', key: 'pet_name', align: 'center'},
+  {title: '宠物照片', dataIndex: 'pet_photo', key: 'pet_photo', align: 'center', width: 90},
+  {title: '体重', dataIndex: 'pet_weight', key: 'pet_weight', align: 'center', width: 90, sorter: (a, b) => (a.pet_weight || 0) - (b.pet_weight || 0)},
+  {title: '寄养备注', dataIndex: 'remark', key: 'remark', align: 'center', width: 180, ellipsis: true, customRender: ({record}) => record.remark || '-'},
   {title: '寄养时间', dataIndex: 'start_date', key: 'start_date', align: 'center', sorter: (a, b) => (a.start_date || '').localeCompare(b.start_date || '')},
   {title: '寄养天数', dataIndex: 'duration', key: 'duration', align: 'center', sorter: (a, b) => (a.duration || 0) - (b.duration || 0)},
   {title: '寄养状态', dataIndex: 'progress', key: 'progress', align: 'center'},
@@ -140,7 +162,7 @@ const updatePageData = () => {
 const auditModal = reactive({
   visible: false,
   record: null as any,
-  result: '寄养中' as string,
+  result: 2 as number,
   cageNo: undefined as any,
 });
 
@@ -178,7 +200,7 @@ const handleReset = () => { data.progress = undefined; data.page = 1; getDataLis
 // 打开审核弹窗
 const handleAudit = (record: any) => {
   auditModal.record = record;
-  auditModal.result = '寄养中';
+  auditModal.result = 2;
   auditModal.cageNo = record.cage_no || undefined;
   auditModal.visible = true;
 };

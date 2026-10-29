@@ -23,12 +23,17 @@ public class AdoptablePetServiceImpl extends ServiceImpl<AdoptablePetMapper, Ado
         if (StringUtils.isNotBlank(keyword)) {
             queryWrapper.like("nickname", keyword);
         }
-        queryWrapper.orderByDesc("pid");
+        // 待领养(status=1)优先展示，已领养(status=2)排在后面；同状态内按 pid 倒序（新增在前）
+        queryWrapper.orderByAsc("status").orderByDesc("pid");
         return adoptablePetMapper.selectList(queryWrapper);
     }
 
     @Override
     public void addAdoptablePet(AdoptablePet adoptablePet) {
+        // 新建宠物默认处于「待领养」(status=1) 状态
+        if (adoptablePet.getStatus() == null) {
+            adoptablePet.setStatus(1);
+        }
         adoptablePetMapper.insert(adoptablePet);
     }
 

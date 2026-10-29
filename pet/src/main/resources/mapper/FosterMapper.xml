@@ -3,7 +3,8 @@
 <mapper namespace="com.example.mapper.FosterMapper">
 
     <select id="getFosterList" resultType="java.util.Map">
-        select A.order_id, A.client_uid, A.pet_name, A.start_date, A.duration, A.progress, A.cage_no,
+        select A.order_id, A.client_uid, A.pet_name, A.pet_weight, A.pet_photo, A.remark,
+               A.start_date, A.duration, A.progress, A.cage_no,
                A.create_by, A.create_by_name, A.create_time,
                A.update_by, A.update_by_name, A.update_time,
                B.username as client_name

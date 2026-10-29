@@ -25,6 +25,7 @@ public class AdoptionRecord extends BaseEntity {
     @JsonFormat(pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date adoptDate;
+    /** 领养状态：1-待审核，2-已领养，3-已退养，4-已归还 */
     @TableField
-    private String state;
+    private Integer state;
 }

@@ -115,20 +115,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (dbUser == null || !matchesPassword(user.getPassword(), dbUser.getPassword())) {
             return null;
         }
-        int role = parseRole(dbUser.getRole());
+        int role = dbUser.getRole() == null ? -1 : dbUser.getRole();
         boolean matched = admin ? role > User.NormalUser : role == User.NormalUser;
         return matched ? clearSensitive(upgradePasswordIfNeeded(dbUser, user.getPassword())) : null;
-    }
-
-    private int parseRole(String role) {
-        if (role == null) {
-            return -1;
-        }
-        try {
-            return Integer.parseInt(role);
-        } catch (NumberFormatException e) {
-            return -1;
-        }
     }
 
     @Override
@@ -175,7 +164,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user == null || !matchesPassword(password, user.getPassword())) {
             return null;
         }
-        if (parseRole(user.getRole()) <= User.NormalUser) {
+        if (user.getRole() == null || user.getRole() <= User.NormalUser) {
             return null;
         }
         return clearSensitive(upgradePasswordIfNeeded(user, password));
@@ -187,7 +176,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user == null || !matchesPassword(password, user.getPassword())) {
             return null;
         }
-        if (parseRole(user.getRole()) != User.NormalUser) {
+        if (user.getRole() == null || user.getRole() != User.NormalUser) {
             return null;
         }
         return clearSensitive(upgradePasswordIfNeeded(user, password));
@@ -205,8 +194,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setToken(generateToken(user.getUsername()));
         
         // 设置默认值
-        user.setRole(String.valueOf(User.NormalUser));
-        user.setStatus("0");
+        user.setRole(User.NormalUser);
+        user.setStatus(0);
         user.setCreateTime(new Date());
         
         // 保存用户

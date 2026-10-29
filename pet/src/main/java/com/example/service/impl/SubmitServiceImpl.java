@@ -29,11 +29,25 @@ public class SubmitServiceImpl extends ServiceImpl<SubmitMapper, Submit> impleme
 
     @Override
     public void addSubmit(Submit submit) {
+        if (submit.getStatus() == null) {
+            submit.setStatus(1);
+        }
         submitMapper.insert(submit);
     }
 
     @Override
     public void updateSubmit(Submit submit) {
+        if (submit.getStatus() != null && submit.getId() != null) {
+            Submit existing = submitMapper.selectById(submit.getId());
+            if (existing != null && existing.getStatus() != null) {
+                if (existing.getStatus() == 2 && submit.getStatus() == 1) {
+                    throw new RuntimeException("已处理的记录不可回退为待处理");
+                }
+                if (existing.getStatus() == submit.getStatus()) {
+                    throw new RuntimeException("状态未变更");
+                }
+            }
+        }
         submitMapper.updateById(submit);
     }
 

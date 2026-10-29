@@ -23,8 +23,8 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
         if (StringUtils.isNotBlank(keyword)) {
             queryWrapper.like("name", keyword);
         }
-        // 按状态排序：空闲 > 维护中 > 已占用，同状态内按 id 降序
-        queryWrapper.orderByAsc("FIELD(status, '空闲', '维护中', '已占用')").orderByDesc("id");
+        // 按状态排序：空闲(1) > 维护中(3) > 已占用(2)，同状态内按 id 降序
+        queryWrapper.orderByAsc("FIELD(status, 1, 3, 2)").orderByDesc("id");
         return roomMapper.selectList(queryWrapper);
     }
 

@@ -34,7 +34,7 @@ public class PetProduct extends BaseEntity {
     @TableField
     public BigDecimal price;
     @TableField
-    public String status;
+    public Integer status;
     @TableField
     public Integer score;
     @TableField

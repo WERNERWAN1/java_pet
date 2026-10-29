@@ -18,10 +18,10 @@
             <span style="color: #ff4d4f; font-weight: bold;">¥{{ text }}</span>
           </template>
           <template v-if="column.key === 'operation'">
-            <a-popconfirm v-if="record.status === '1'" title="确认收货?" ok-text="是" cancel-text="否" @confirm="handleConfirm(record)">
+            <a-popconfirm v-if="Number(record.status) === 1" title="确认收货?" ok-text="是" cancel-text="否" @confirm="handleConfirm(record)">
               <a>收货</a>
             </a-popconfirm>
-            <a-popconfirm v-if="record.status === '1'" title="确定取消?" ok-text="是" cancel-text="否" @confirm="handleCancel(record)">
+            <a-popconfirm v-if="Number(record.status) === 1" title="确定取消?" ok-text="是" cancel-text="否" @confirm="handleCancel(record)">
               <a style="color: #ff4d4f; margin-left: 8px;">取消</a>
             </a-popconfirm>
           </template>

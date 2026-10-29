@@ -8,15 +8,12 @@ import com.example.service.OrderService;
 import com.example.mapper.GoodsMapper;
 import com.example.mapper.OrderMapper;
 import com.example.mapper.PetProductMapper;
-import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements OrderService {
@@ -29,22 +26,18 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     @Autowired
     GoodsMapper goodsMapper;
 
-    @Autowired
-    SqlSession sqlSession;
-
     @Override
     public List<Order> getOrderList() {
         return mapper.getList();
     }
 
     @Override
-    public void createOrder(Order order, String orderType) {
+    public void createOrder(Order order, Integer orderType) {
         int count = (order.getCount() != null) ? order.getCount() : 1;
-        String type = (orderType != null && !orderType.isEmpty()) ? orderType : "pet_product";
+        int type = (orderType != null) ? orderType : Order.PetProductOrder;
         BigDecimal unitPrice;
 
-        if ("goods".equals(type)) {
-            // 宠物用品订单 - 查 goods 表
+        if (type == Order.GoodsOrder) {
             Goods goods = goodsMapper.selectById(order.getProductId());
             if (goods == null) {
                 throw new RuntimeException("商品不存在");
@@ -55,11 +48,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             if (goods.getNum() < count) {
                 throw new RuntimeException("库存不足，当前库存：" + goods.getNum());
             }
+            int rows = goodsMapper.decrementStock(goods.getId(), count);
+            if (rows == 0) {
+                throw new RuntimeException("库存不足或已被其他订单占用，请刷新后重试");
+            }
             unitPrice = goods.getPrice();
-            goods.setNum(goods.getNum() - count);
-            goodsMapper.updateById(goods);
         } else {
-            // 宠物商品订单 - 查 pet_product 表
             PetProduct product = petProductMapper.selectById(order.getProductId());
             if (product == null) {
                 throw new RuntimeException("商品不存在");
@@ -70,9 +64,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             if (product.getStock() < count) {
                 throw new RuntimeException("库存不足，当前库存：" + product.getStock());
             }
+            int rows = petProductMapper.decrementStock(product.getId(), count);
+            if (rows == 0) {
+                throw new RuntimeException("库存不足或已被其他订单占用，请刷新后重试");
+            }
             unitPrice = product.getPrice();
-            product.setStock(product.getStock() - count);
-            petProductMapper.updateById(product);
         }
 
         // 金额快照：在下单瞬间把成交单价与成交金额固化到订单，
@@ -87,14 +83,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         Date now = new Date();
         order.setOrderTime(now);
         order.setOrderNumber(String.valueOf(System.currentTimeMillis()));
-        order.setStatus("1");
+        order.setStatus(1);
+        // 类型数字化后实体直接映射 order_type 列，随 insert 一次写入，无需再回写
+        order.setOrderType(type);
         mapper.insert(order);
-
-        // 更新订单类型
-        Map<String, Object> params = new HashMap<>();
-        params.put("id", order.getId());
-        params.put("orderType", type);
-        sqlSession.update("com.example.mapper.OrderMapper.updateOrderType", params);
     }
 
     @Override
@@ -114,9 +106,24 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     
     @Override
     public void cancelOrder(Long orderId) {
+        Order existing = mapper.selectById(orderId);
+        if (existing == null) {
+            throw new RuntimeException("订单不存在");
+        }
+        if (existing.getStatus() != null && existing.getStatus() == 7) {
+            throw new RuntimeException("订单已取消，不可重复操作");
+        }
+        int count = (existing.getCount() != null) ? existing.getCount() : 0;
+        if (count > 0 && existing.getProductId() != null) {
+            if (existing.getOrderType() != null && existing.getOrderType() == Order.GoodsOrder) {
+                goodsMapper.incrementStock(existing.getProductId(), count);
+            } else {
+                petProductMapper.incrementStock(existing.getProductId(), count);
+            }
+        }
         Order order = new Order();
         order.setId(orderId);
-        order.setStatus("7"); // 7=取消
+        order.setStatus(7);
         mapper.updateById(order);
     }
 }

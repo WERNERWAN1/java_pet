@@ -76,51 +76,48 @@ public class OverviewServiceImpl implements OverviewService {
         map.put("spzs", spzs);
         
         long now = System.currentTimeMillis();
-        long sevenMillis = now - 7 * 24 * 60 * 60 * 1000; // 7天前
+        Date sevenDaysAgo = new Date(now - 7L * 24 * 60 * 60 * 1000);
         
         // 七日新增
-        queryWrapper.ge("create_time", sevenMillis);
+        queryWrapper.ge("create_time", sevenDaysAgo);
         long qrxz = petProductMapper.selectCount(queryWrapper);
         map.put("qrxz", qrxz);
         
         // 未付订单
         QueryWrapper<Order> orderQueryWrapper = new QueryWrapper<>();
-        orderQueryWrapper.eq("status", "1");
+        orderQueryWrapper.eq("status", 1);
         long wfdd = orderMapper.selectCount(orderQueryWrapper);
         map.put("wfdd", wfdd);
         
         // 未付订单人数
         orderQueryWrapper = new QueryWrapper<>();
-        orderQueryWrapper.select("distinct user_id");
-        orderQueryWrapper.eq("status", "1");
+        orderQueryWrapper.eq("status", 1);
         orderQueryWrapper.groupBy("user_id");
-        map.put("wfddrs", orderMapper.selectList(orderQueryWrapper).size());
+        map.put("wfddrs", orderMapper.selectCount(orderQueryWrapper));
         
         // 已付订单
         orderQueryWrapper = new QueryWrapper<>();
-        orderQueryWrapper.eq("status", "2");
+        orderQueryWrapper.eq("status", 2);
         long yfdd = orderMapper.selectCount(orderQueryWrapper);
         map.put("yfdd", yfdd);
         
         // 已付订单人数
         orderQueryWrapper = new QueryWrapper<>();
-        orderQueryWrapper.select("distinct user_id");
-        orderQueryWrapper.eq("status", "2");
+        orderQueryWrapper.eq("status", 2);
         orderQueryWrapper.groupBy("user_id");
-        map.put("yfddrs", orderMapper.selectList(orderQueryWrapper).size());
+        map.put("yfddrs", orderMapper.selectCount(orderQueryWrapper));
         
         // 取消订单
         orderQueryWrapper = new QueryWrapper<>();
-        orderQueryWrapper.eq("status", "7");
+        orderQueryWrapper.eq("status", 7);
         long qxdd = orderMapper.selectCount(orderQueryWrapper);
         map.put("qxdd", qxdd);
         
         // 取消订单人数
         orderQueryWrapper = new QueryWrapper<>();
-        orderQueryWrapper.select("distinct user_id");
-        orderQueryWrapper.eq("status", "7");
+        orderQueryWrapper.eq("status", 7);
         orderQueryWrapper.groupBy("user_id");
-        map.put("qxddrs", orderMapper.selectList(orderQueryWrapper).size());
+        map.put("qxddrs", orderMapper.selectCount(orderQueryWrapper));
         
         // 热门商品
         List<Object> popularThings = overviewMapper.getPopularThing();

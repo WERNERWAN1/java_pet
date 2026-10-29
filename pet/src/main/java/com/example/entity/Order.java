@@ -16,10 +16,16 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @TableName("order")
 public class Order extends BaseEntity {
+    /**
+     * 订单类型数字编码：与库中 order_type tinyint 对应，展示文案由前端按映射渲染。
+     */
+    public static final int PetProductOrder = 1; // 宠物商品
+    public static final int GoodsOrder = 2; // 宠物商城用品
+
     @TableId(value = "id", type = IdType.AUTO)
     public Long id;
     @TableField
-    public String status;
+    public Integer status;
     @TableField
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -42,7 +48,7 @@ public class Order extends BaseEntity {
     @TableField
     public BigDecimal amount;
     @TableField
-    public String orderType; // 订单类型(pet_product-宠物商品,goods-宠物商城用品)
+    public Integer orderType; // 订单类型：1-宠物商品，2-宠物商城用品（见 PetProductOrder/GoodsOrder）
     @TableField
     public Long userId;
     @TableField

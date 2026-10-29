@@ -26,8 +26,9 @@ public class Submit extends BaseEntity {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date time;
+    /** 处理状态：1-待处理，2-已处理 */
     @TableField
-    private String status;
+    private Integer status;
 
     @TableField(exist = false)
     private MultipartFile imageFile;

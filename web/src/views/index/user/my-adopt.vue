@@ -12,10 +12,10 @@
       >
         <template #bodyCell="{ text, record, column }">
           <template v-if="column.key === 'state'">
-            <a-tag :color="text === '已领养' ? 'green' : text === '已退养' ? 'red' : 'blue'">{{ text }}</a-tag>
+            <a-tag :color="Number(text) === 2 ? 'green' : Number(text) === 3 ? 'red' : 'blue'">{{ stateText[Number(text)] || text }}</a-tag>
           </template>
           <template v-if="column.key === 'operation'">
-            <a-popconfirm v-if="record.state === '已领养'" title="确定退养?" ok-text="是" cancel-text="否" @confirm="handleReturn(record)">
+            <a-popconfirm v-if="Number(record.state) === 2" title="确定退养?" ok-text="是" cancel-text="否" @confirm="handleReturn(record)">
               <a style="color: #ff4d4f;">退养</a>
             </a-popconfirm>
           </template>
@@ -33,6 +33,9 @@ const loading = ref(false);
 const list = ref([]);
 const userId = localStorage.getItem('user_id');
 
+// 领养状态：1-待审核，2-已领养，3-已退养，4-已归还
+const stateText = {1: '待审核', 2: '已领养', 3: '已退养', 4: '已归还'};
+
 const columns = reactive([
   {title: '宠物名', dataIndex: 'pet_name', key: 'pet_name', align: 'center'},
   {title: '领养日期', dataIndex: 'adopt_date', key: 'adopt_date', align: 'center'},
@@ -49,7 +52,7 @@ const getDataList = () => {
 };
 
 const handleReturn = (record) => {
-  updateApi({recordId: record.recordId, state: '已退养'}).then(() => {
+  updateApi({recordId: record.recordId, state: 3}).then(() => { // 3-已退养
     message.success('退养成功');
     getDataList();
   }).catch(() => { message.error('操作失败'); });

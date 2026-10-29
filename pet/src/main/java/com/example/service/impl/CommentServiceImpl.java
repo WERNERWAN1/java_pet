@@ -22,13 +22,27 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     @Override
     public void createComment(Comment comment) {
-        System.out.println(comment);
         comment.setCommentTime(new Date());
+        if (comment.getLikeCount() == null) {
+            comment.setLikeCount(0);
+        }
         mapper.insert(comment);
     }
 
     @Override
     public void deleteComment(String id) {
+        mapper.deleteById(id);
+    }
+
+    @Override
+    public void deleteCommentByUser(String id, Long userId) {
+        Comment comment = mapper.selectById(id);
+        if (comment == null) {
+            throw new RuntimeException("评论不存在");
+        }
+        if (!comment.getUserId().equals(userId)) {
+            throw new RuntimeException("只能删除自己的评论");
+        }
         mapper.deleteById(id);
     }
 
@@ -54,11 +68,6 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     
     @Override
     public void likeComment(String commentId) {
-        Comment comment = getCommentDetail(commentId);
-        if (comment != null) {
-            int likeCount = (comment.getLikeCount() != null ? comment.getLikeCount() : 0) + 1;
-            comment.setLikeCount(likeCount);
-            mapper.updateById(comment);
-        }
+        mapper.incrementLike(commentId);
     }
 }

@@ -8,10 +8,10 @@
             <a-select-option v-for="item in data.breedList" :key="item" :value="item">{{ item }}</a-select-option>
           </a-select>
           <a-select v-model:value="data.state" placeholder="请选择状态" style="width: 150px;" allow-clear>
-            <a-select-option value="已领养">已领养</a-select-option>
-            <a-select-option value="已退养">已退养</a-select-option>
-            <a-select-option value="已归还">已归还</a-select-option>
-            <a-select-option value="待审核">待审核</a-select-option>
+            <a-select-option :value="2">已领养</a-select-option>
+            <a-select-option :value="3">已退养</a-select-option>
+            <a-select-option :value="4">已归还</a-select-option>
+            <a-select-option :value="1">待审核</a-select-option>
           </a-select>
           <a-button type="primary" @click="handleSearch">搜索</a-button>
           <a-button style="background: #e6a23c; color: #fff; border-color: #e6a23c;" @click="handleReset">重置</a-button>
@@ -40,13 +40,13 @@
           </template>
           <!-- 领养状态列 -->
           <template v-if="column.key === 'state'">
-            <a-tag :color="getStateColor(text)">{{ text }}</a-tag>
+            <a-tag :color="getStateColor(text)">{{ stateText[Number(text)] || text }}</a-tag>
           </template>
           <!-- 操作列 -->
           <template v-if="column.key === 'operation'">
             <a-space>
               <!-- 待审核状态显示审核按钮 -->
-              <a-button v-if="record.state === '待审核'" type="primary" size="small" @click="handleAudit(record)">
+              <a-button v-if="Number(record.state) === 1" type="primary" size="small" @click="handleAudit(record)">
                 审核
               </a-button>
               <a-popconfirm title="确定删除该领养记录?" ok-text="是" cancel-text="否" @confirm="handleDelete(record)">
@@ -82,8 +82,8 @@
       <div style="margin-top: 16px;">
         <span style="margin-right: 12px;">审核结果：</span>
         <a-radio-group v-model:value="auditModal.result">
-          <a-radio value="已领养">通过</a-radio>
-          <a-radio value="已退养">拒绝</a-radio>
+          <a-radio :value="2">通过</a-radio>
+          <a-radio :value="3">拒绝</a-radio>
         </a-radio-group>
       </div>
     </a-modal>
@@ -99,8 +99,11 @@ import {getFormatTime} from "/@/utils";
 
 const getImgUrl = (img) => BASE_URL + '/api/staticfiles/image/' + img;
 
+// 领养状态：1-待审核，2-已领养，3-已退养，4-已归还
+const stateText: Record<number, string> = {1: '待审核', 2: '已领养', 3: '已退养', 4: '已归还'};
+
 const getStateColor = (state) => {
-  return {'已领养': 'green', '已退养': 'red', '已归还': 'orange', '待审核': 'blue'}[state] || 'default';
+  return {2: 'green', 3: 'red', 4: 'orange', 1: 'blue'}[Number(state)] || 'default';
 };
 
 const columns = [
@@ -154,7 +157,7 @@ const updatePageData = () => {
 const auditModal = reactive({
   visible: false,
   record: null as any,
-  result: '已领养' as string,
+  result: 2 as number,
 });
 
 onMounted(() => {
@@ -192,7 +195,7 @@ const handleReset = () => { data.breed = undefined; data.state = undefined; data
 // 打开审核弹窗
 const handleAudit = (record: any) => {
   auditModal.record = record;
-  auditModal.result = '已领养';
+  auditModal.result = 2;
   auditModal.visible = true;
 };
 

@@ -14,21 +14,21 @@
         select A.*,
                B.username,
                CASE A.order_type
-                   WHEN 'goods' THEN G.name
+                   WHEN 2 THEN G.name
                    ELSE T.title
                END as title,
                CASE A.order_type
-                   WHEN 'goods' THEN G.img
+                   WHEN 2 THEN G.img
                    ELSE T.cover
                END as cover,
                CASE A.order_type
-                   WHEN 'goods' THEN G.price
+                   WHEN 2 THEN G.price
                    ELSE T.price
                END as price
-        from order as A
-        join user as B on (A.user_id=B.id)
-        left join pet_product as T on (A.product_id=T.id AND (A.order_type IS NULL OR A.order_type = 'pet_product'))
-        left join goods as G on (A.product_id=G.id AND A.order_type = 'goods')
+        from `order` as A
+        join `user` as B on (A.user_id=B.id)
+        left join pet_product as T on (A.product_id=T.id AND A.order_type = 1)
+        left join goods as G on (A.product_id=G.id AND A.order_type = 2)
         order by A.order_time desc;
     </select>
 
@@ -36,21 +36,21 @@
         select A.*,
                B.username,
                CASE A.order_type
-                   WHEN 'goods' THEN G.name
+                   WHEN 2 THEN G.name
                    ELSE T.title
                END as title,
                CASE A.order_type
-                   WHEN 'goods' THEN G.img
+                   WHEN 2 THEN G.img
                    ELSE T.cover
                END as cover,
                CASE A.order_type
-                   WHEN 'goods' THEN G.price
+                   WHEN 2 THEN G.price
                    ELSE T.price
                END as price
-        from order as A
-        join user as B on (A.user_id=B.id)
-        left join pet_product as T on (A.product_id=T.id AND (A.order_type IS NULL OR A.order_type = 'pet_product'))
-        left join goods as G on (A.product_id=G.id AND A.order_type = 'goods')
+        from `order` as A
+        join `user` as B on (A.user_id=B.id)
+        left join pet_product as T on (A.product_id=T.id AND A.order_type = 1)
+        left join goods as G on (A.product_id=G.id AND A.order_type = 2)
         where 2>1
         <if test="userId != null">
             and A.user_id=#{userId}
@@ -60,9 +60,5 @@
         </if>
         order by A.order_time desc;
     </select>
-
-    <update id="updateOrderType">
-        UPDATE order SET order_type = #{orderType} WHERE id = #{id}
-    </update>
 
 </mapper>

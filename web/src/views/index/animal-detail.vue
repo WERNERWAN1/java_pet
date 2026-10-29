@@ -9,13 +9,15 @@
             <div v-else class="no-img">暂无图片</div>
           </div>
           <div class="detail-right">
-            <h2>{{ animal.nickname }}</h2>
+            <h2>{{ animal.nickname }}
+              <a-tag :color="isAdopted ? 'red' : 'green'" style="margin-left: 8px;">{{ isAdopted ? '已领养' : '待领养' }}</a-tag>
+            </h2>
             <div class="info-row"><span class="label">品种：</span>{{ animal.breed }}</div>
             <div class="info-row"><span class="label">性别：</span>{{ animal.gender }}</div>
             <div class="info-row"><span class="label">年龄：</span>{{ animal.years }}岁</div>
             <div class="info-row"><span class="label">健康状态：</span>{{ animal.healthCondition }}</div>
             <div class="info-row desc"><span class="label">介绍：</span>{{ animal.introduction }}</div>
-            <a-button type="primary" size="large" @click="handleAdopt" style="margin-top: 24px;">申请领养</a-button>
+            <a-button type="primary" size="large" :disabled="isAdopted" @click="handleAdopt" style="margin-top: 24px;">{{ isAdopted ? '已被领养' : '申请领养' }}</a-button>
           </div>
         </div>
       </a-spin>
@@ -37,9 +39,16 @@ const router = useRouter();
 const loading = ref(false);
 const animal = ref(null);
 
+// 已被审核通过的宠物(status=2)不允许再次发起领养申请
+const isAdopted = computed(() => !!animal.value && Number(animal.value.status) === 2);
+
 const getImgUrl = (img) => BASE_URL + '/api/staticfiles/image/' + img;
 
 const handleAdopt = () => {
+  if (isAdopted.value) {
+    message.warn('该宠物已被领养');
+    return;
+  }
   const userId = localStorage.getItem('user_id');
   if (!userId) {
     message.warn('请先登录');
@@ -50,7 +59,7 @@ const handleAdopt = () => {
     ownerUid: parseInt(userId),
     petUid: animal.value.pid,
     adoptDate: new Date().toISOString().split('T')[0],
-    state: '待审核'
+    state: 1 // 1-待审核
   }).then(() => {
     message.success('领养申请已提交');
     router.push({name: 'myAdopt'});

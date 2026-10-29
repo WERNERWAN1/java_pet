@@ -30,6 +30,9 @@ public class AdoptablePet extends BaseEntity {
     private String healthCondition;
     @TableField
     private String introduction;
+    /** 领养状态：1-待领养，2-已领养 */
+    @TableField
+    private Integer status;
 
     @TableField(exist = false)
     private MultipartFile imageFile;

@@ -12,13 +12,14 @@
             <div class="card-img">
               <img v-if="item.photo" :src="getImgUrl(item.photo)" />
               <div v-else class="no-img">暂无图片</div>
+              <span class="status-badge" :class="Number(item.status) === 2 ? 'badge-adopted' : 'badge-available'">{{ Number(item.status) === 2 ? '已领养' : '待领养' }}</span>
             </div>
             <div class="card-info">
               <h3>{{ item.nickname }}</h3>
               <p><span class="label">品种：</span>{{ item.breed }}</p>
               <p><span class="label">性别：</span>{{ item.gender }}</p>
               <p><span class="label">年龄：</span>{{ item.years }}岁</p>
-              <p><span class="label">状态：</span>{{ item.healthCondition }}</p>
+              <p><span class="label">健康状态：</span>{{ item.healthCondition }}</p>
             </div>
           </div>
           <div v-if="animalList.length === 0 && !loading" class="no-data">暂无可领养宠物</div>
@@ -65,9 +66,12 @@ onMounted(() => {
 .card-item { width: calc(25% - 18px); background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.3s;
   &:hover { transform: translateY(-4px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
 }
-.card-img { height: 200px; overflow: hidden;
+.card-img { height: 200px; overflow: hidden; position: relative;
   img { width: 100%; height: 100%; object-fit: cover; }
   .no-img { height: 100%; display: flex; align-items: center; justify-content: center; background: #f5f5f5; color: #999; }
+  .status-badge { position: absolute; top: 8px; right: 8px; padding: 2px 10px; border-radius: 12px; font-size: 12px; color: #fff; }
+  .badge-available { background: #52c41a; }
+  .badge-adopted { background: #ff4d4f; }
 }
 .card-info { padding: 16px;
   h3 { font-size: 18px; color: #333; margin-bottom: 8px; }

@@ -134,8 +134,8 @@
               <a-col span="12">
                 <a-form-item label="状态" name="status">
                   <a-select placeholder="请选择" allowClear v-model:value="modal.form.status">
-                    <a-select-option key="0" value="0">上架</a-select-option>
-                    <a-select-option key="1" value="1">下架</a-select-option>
+                    <a-select-option key="0" :value="0">上架</a-select-option>
+                    <a-select-option key="1" :value="1">下架</a-select-option>
                   </a-select>
                 </a-form-item>
               </a-col>
@@ -209,7 +209,7 @@ const columns = reactive([
     title: '状态',
     dataIndex: 'status',
     key: 'status',
-    customRender: ({ text, record, index, column }) => text === '0' ? '上架' : '下架'
+    customRender: ({ text, record, index, column }) => Number(text) === 0 ? '上架' : '下架'
   },
   {
     title: '创建人',
@@ -452,7 +452,7 @@ const handleOk = () => {
         formData.append('sex', modal.form.sex || '')
         formData.append('address', modal.form.address || '')
         formData.append('stock', modal.form.stock || 0)
-        if (modal.form.status) {
+        if (modal.form.status != null) {
           formData.append('status', modal.form.status)
         }
         if (modal.editFlag) {

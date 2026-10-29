@@ -30,7 +30,7 @@
             <span v-else style="color: #ccc;">暂无图片</span>
           </template>
           <template v-if="column.key === 'status'">
-            <a-tag :color="text === '已处理' ? 'green' : 'orange'">{{ text }}</a-tag>
+            <a-tag :color="Number(text) === 2 ? 'green' : 'orange'">{{ submitStatusText[Number(text)] || text }}</a-tag>
           </template>
           <template v-if="column.key === 'operation'">
             <span>
@@ -93,8 +93,8 @@
               <a-col span="24">
                 <a-form-item label="处理状态" name="status">
                   <a-select placeholder="请选择状态" v-model:value="modal.form.status">
-                    <a-select-option value="待处理">待处理</a-select-option>
-                    <a-select-option value="已处理">已处理</a-select-option>
+                    <a-select-option :value="1">待处理</a-select-option>
+                    <a-select-option :value="2">已处理</a-select-option>
                   </a-select>
                 </a-form-item>
               </a-col>
@@ -114,6 +114,9 @@ import {getFormatTime} from "/@/utils";
 import {FileImageOutlined} from '@ant-design/icons-vue';
 
 const getImgUrl = (img) => BASE_URL + '/api/staticfiles/image/' + img;
+
+// 处理状态：1-待处理，2-已处理
+const submitStatusText: Record<number, string> = {1: '待处理', 2: '已处理'};
 
 const fileList = ref<any[]>([]);
 
@@ -240,7 +243,7 @@ const handleOk = () => {
     }
     formData.append('name', modal.form.name || '');
     formData.append('time', modal.form.time || '');
-    formData.append('status', modal.form.status || '');
+    formData.append('status', modal.form.status != null ? String(modal.form.status) : '');
     if (modal.form.imageFile) {
       formData.append('imageFile', modal.form.imageFile);
     }

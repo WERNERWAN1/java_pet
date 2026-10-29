@@ -150,7 +150,7 @@ public class UserController {
     @Transactional
     public APIResponse updateUserInfo(User user) throws IOException {
         User tmpUser = userService.getUserDetail(user.getId());
-        if(tmpUser.getRole().equals(String.valueOf(User.NormalUser))){
+        if(tmpUser.getRole() != null && tmpUser.getRole() == User.NormalUser){
             // 处理头像上传
             String avatar = fileUploadService.uploadAvatar(user.getAvatarFile());
             if(!StringUtils.isEmpty(avatar)) {
@@ -174,7 +174,7 @@ public class UserController {
     @Transactional
     public APIResponse updatePwd(Long userId, String password, String newPassword) throws IOException {
         User user = userService.getUserDetail(userId);
-        if(user.getRole().equals(String.valueOf(User.NormalUser))) {
+        if(user.getRole() != null && user.getRole() == User.NormalUser) {
             // Service内部处理密码加密和验证
             boolean success = userService.updatePassword(userId, password, newPassword);
             if (success) {

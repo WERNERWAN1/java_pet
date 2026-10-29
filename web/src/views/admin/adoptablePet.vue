@@ -29,6 +29,9 @@
             <img v-if="record.photo" :src="getImgUrl(record.photo)" style="width: 60px; height: 60px; object-fit: cover;" />
             <span v-else style="color: #ccc;">暂无图片</span>
           </template>
+          <template v-if="column.key === 'status'">
+            <a-tag :color="Number(text) === 2 ? 'red' : 'green'">{{ Number(text) === 2 ? '已领养' : '待领养' }}</a-tag>
+          </template>
           <template v-if="column.key === 'operation'">
             <span>
               <a @click="handleEdit(record)">编辑</a>
@@ -155,6 +158,7 @@ const columns = [
   {title: '年龄', dataIndex: 'years', key: 'years', align: 'center'},
   {title: '品种', dataIndex: 'breed', key: 'breed', align: 'center'},
   {title: '健康状态', dataIndex: 'healthCondition', key: 'healthCondition', align: 'center'},
+  {title: '领养状态', dataIndex: 'status', key: 'status', align: 'center', width: 100},
   {title: '介绍', dataIndex: 'introduction', key: 'introduction', align: 'center', ellipsis: true},
   {title: '创建人', dataIndex: 'createByName', key: 'createByName', align: 'center', width: 100, customRender: ({text}) => text || '--'},
   {title: '创建时间', dataIndex: 'createTime', key: 'createTime', align: 'center', width: 170, customRender: ({text}) => getFormatTime(text, true) || '--'},

@@ -45,7 +45,7 @@ public class OrderController {
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @Transactional
-    public APIResponse create(Order order, String orderType) throws IOException {
+    public APIResponse create(Order order, Integer orderType) throws IOException {
         try {
             service.createOrder(order, orderType);
             return new APIResponse(ResponeCode.SUCCESS, "创建成功");

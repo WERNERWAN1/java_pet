@@ -33,9 +33,9 @@
           </template>
           <template v-if="column.key === 'role'">
             <span>
-              <span v-if="text === '1'">普通用户</span>
-              <span v-if="text === '2'">演示帐号</span>
-              <span v-if="text === '3'">管理员</span>
+              <span v-if="Number(text) === 1">普通用户</span>
+              <span v-if="Number(text) === 2">演示帐号</span>
+              <span v-if="Number(text) === 3">管理员</span>
             </span>
           </template>
           <template v-if="column.key === 'operation'">
@@ -92,8 +92,8 @@
               <a-col span="24">
                 <a-form-item label="状态" name="status">
                   <a-select placeholder="请选择" allowClear v-model:value="modal.form.status">
-                    <a-select-option key="0" value="0">正常</a-select-option>
-                    <a-select-option key="1" value="1">封号</a-select-option>
+                    <a-select-option key="0" :value="0">正常</a-select-option>
+                    <a-select-option key="1" :value="1">封号</a-select-option>
                   </a-select>
                 </a-form-item>
               </a-col>
@@ -177,7 +177,7 @@
       dataIndex: 'status',
       key: 'status',
       align: 'center',
-      customRender: ({ text, record, index, column }) => (text === '0' ? '正常' : '封号'),
+      customRender: ({ text, record, index, column }) => (Number(text) === 0 ? '正常' : '封号'),
     },
     {
       title: '邮箱',
@@ -266,15 +266,15 @@
     title: '',
     roleData: [
       {
-        id: '1',
+        id: 1,
         title: '普通用户',
       },
       {
-        id: '2',
+        id: 2,
         title: '演示帐号',
       },
       {
-        id: '3',
+        id: 3,
         title: '管理员',
       },
     ],
@@ -410,7 +410,7 @@
         if (modal.form.role) {
           formData.append('role', modal.form.role);
         }
-        if (modal.form.status) {
+        if (modal.form.status != null) {
           formData.append('status', modal.form.status);
         }
         if (modal.form.cover) {

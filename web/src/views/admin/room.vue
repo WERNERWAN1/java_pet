@@ -16,7 +16,7 @@
             <span v-else style="color: #ccc;">--</span>
           </template>
           <template v-if="column.key === 'status'">
-            <a-tag :color="text === '空闲' ? 'green' : text === '已占用' ? 'red' : 'orange'">{{ text }}</a-tag>
+            <a-tag :color="Number(text) === 1 ? 'green' : Number(text) === 2 ? 'red' : 'orange'">{{ roomStatusText[Number(text)] || text }}</a-tag>
           </template>
           <template v-if="column.key === 'operation'">
             <span>
@@ -33,7 +33,7 @@
         <a-form ref="myform" :label-col="{ style: { width: '80px' } }" :model="modal.form" :rules="modal.rules">
           <a-row :gutter="24">
             <a-col span="24"><a-form-item label="房间编号" name="name"><a-input placeholder="请输入房间编号" v-model:value="modal.form.name"></a-input></a-form-item></a-col>
-            <a-col span="24"><a-form-item label="房间状态" name="status"><a-select placeholder="请选择状态" v-model:value="modal.form.status"><a-select-option value="空闲">空闲</a-select-option><a-select-option value="已占用">已占用</a-select-option><a-select-option value="维护中">维护中</a-select-option></a-select></a-form-item></a-col>
+            <a-col span="24"><a-form-item label="房间状态" name="status"><a-select placeholder="请选择状态" v-model:value="modal.form.status"><a-select-option :value="1">空闲</a-select-option><a-select-option :value="2">已占用</a-select-option><a-select-option :value="3">维护中</a-select-option></a-select></a-form-item></a-col>
             <a-col span="24"><a-form-item label="寄养宠物" name="animal"><a-input placeholder="请输入寄养宠物名" v-model:value="modal.form.animal"></a-input></a-form-item></a-col>
             <a-col span="24">
               <a-form-item label="宠物照片">
@@ -68,6 +68,9 @@ import {getFormatTime} from "/@/utils";
 import {FileImageOutlined} from '@ant-design/icons-vue';
 
 const getImgUrl = (img: string) => BASE_URL + '/api/staticfiles/image/' + img;
+
+// 房间状态：1-空闲，2-已占用，3-维护中
+const roomStatusText: Record<number, string> = {1: '空闲', 2: '已占用', 3: '维护中'};
 
 const fileList = ref<any[]>([]);
 

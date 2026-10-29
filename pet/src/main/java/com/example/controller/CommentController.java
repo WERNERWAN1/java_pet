@@ -65,6 +65,17 @@ public class CommentController {
         return new APIResponse(ResponeCode.SUCCESS, "删除成功");
     }
 
+    @Access(level = AccessLevel.LOGIN)
+    @RequestMapping(value = "/deleteByUser", method = RequestMethod.POST)
+    public APIResponse deleteByUser(String id, Long userId){
+        try {
+            service.deleteCommentByUser(id, userId);
+            return new APIResponse(ResponeCode.SUCCESS, "删除成功");
+        } catch (RuntimeException e) {
+            return new APIResponse(ResponeCode.FAIL, e.getMessage());
+        }
+    }
+
     @Access(level = AccessLevel.ADMIN)
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     @Transactional
