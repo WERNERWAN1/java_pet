@@ -22,6 +22,15 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements AdServic
     }
 
     @Override
+    public List<Ad> getValidAdList() {
+        QueryWrapper<Ad> queryWrapper = new QueryWrapper<>();
+        // 未设置失效时间（长期有效）或失效时间尚未到达的广告才展示
+        queryWrapper.and(w -> w.isNull("expire_time").or().gt("expire_time", new Date()));
+        queryWrapper.orderByDesc("id");
+        return mapper.selectList(queryWrapper);
+    }
+
+    @Override
     public void createAd(Ad ad) {
         System.out.println(ad);
         ad.setCreateTime(new Date());

@@ -16,8 +16,8 @@
             <div class="card-info">
               <h3>{{ item.name }}</h3>
               <div class="price-row">
-                <span class="price">¥{{ item.price }}</span>
-                <span class="stock">库存: {{ item.num }}</span>
+                <span class="price">¥{{ item.price }}<span class="unit" v-if="item.unit">/{{ item.unit }}</span></span>
+                <span class="stock">库存: {{ item.num }} {{ item.unit || '' }}</span>
               </div>
               <a-button type="primary" block @click="handleBuy(item)" :disabled="item.num <= 0">
                 {{ item.num > 0 ? '立即购买' : '已售罄' }}
@@ -82,7 +82,9 @@ onMounted(() => {
 .card-info { padding: 16px;
   h3 { font-size: 16px; color: #333; margin-bottom: 8px; }
   .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-    .price { color: #ff4d4f; font-size: 20px; font-weight: bold; }
+    .price { color: #ff4d4f; font-size: 20px; font-weight: bold;
+      .unit { font-size: 13px; font-weight: normal; color: #999; margin-left: 2px; }
+    }
     .stock { color: #999; font-size: 12px; }
   }
 }

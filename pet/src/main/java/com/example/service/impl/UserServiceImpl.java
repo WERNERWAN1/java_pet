@@ -1,6 +1,7 @@
 package com.example.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.service.UserService;
@@ -11,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +26,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Deprecated
     private static final String LEGACY_SALT = "abcd1234";
+
+    /**
+     * 登录令牌有效期（天）。每次登录都会重新签发令牌，旧令牌立即失效。
+     */
+    private static final int TOKEN_VALID_DAYS = 7;
 
     @Autowired
     UserMapper userMapper;
@@ -82,6 +89,52 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return UUID.randomUUID().toString().replace("-", "");
     }
 
+    /**
+     * 计算令牌过期时间：当前时间 + TOKEN_VALID_DAYS 天
+     */
+    private Date calculateTokenExpireTime() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_MONTH, TOKEN_VALID_DAYS);
+        return calendar.getTime();
+    }
+
+    /**
+     * 登录成功后轮换令牌：签发新令牌并重置有效期，旧令牌随之失效
+     */
+    private User rotateToken(User user) {
+        User update = new User();
+        update.setId(user.getId());
+        update.setToken(generateToken(user.getUsername()));
+        update.setTokenExpireTime(calculateTokenExpireTime());
+        userMapper.updateById(update);
+        user.setToken(update.getToken());
+        user.setTokenExpireTime(update.getTokenExpireTime());
+        return user;
+    }
+
+    /**
+     * 封号校验：密码校验通过后再判断，避免凭空泄露帐号状态
+     */
+    private void checkNotBanned(User user) {
+        if (user.getStatus() != null && user.getStatus() == User.StatusBanned) {
+            throw new RuntimeException("账号已被封禁，请联系管理员");
+        }
+    }
+
+    /**
+     * 按用户ID失效令牌，用于改密等需要强制重新登录的场景
+     */
+    private void invalidateTokenByUserId(Long userId) {
+        if (userId == null) {
+            return;
+        }
+        UpdateWrapper<User> wrapper = new UpdateWrapper<>();
+        wrapper.set("token", null)
+                .set("token_expire_time", null)
+                .eq("id", userId);
+        userMapper.update(null, wrapper);
+    }
+
     @Override
     public List<User> getUserList(String keyword) {
         QueryWrapper<User> queryWrapper = new QueryWrapper();
@@ -115,15 +168,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (dbUser == null || !matchesPassword(user.getPassword(), dbUser.getPassword())) {
             return null;
         }
+        checkNotBanned(dbUser);
         int role = dbUser.getRole() == null ? -1 : dbUser.getRole();
         boolean matched = admin ? role > User.NormalUser : role == User.NormalUser;
-        return matched ? clearSensitive(upgradePasswordIfNeeded(dbUser, user.getPassword())) : null;
+        return matched ? clearSensitive(rotateToken(upgradePasswordIfNeeded(dbUser, user.getPassword()))) : null;
     }
 
     @Override
     public void createUser(User user) {
         user.setPassword(encryptPassword(user.getPassword()));
         user.setToken(generateToken(user.getUsername()));
+        user.setTokenExpireTime(calculateTokenExpireTime());
         userMapper.insert(user);
     }
 
@@ -139,9 +194,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public User getUserByToken(String token) {
+        if (StringUtils.isBlank(token)) {
+            return null;
+        }
         QueryWrapper<User> queryWrapper = new QueryWrapper();
         queryWrapper.eq("token", token);
-        return userMapper.selectOne(queryWrapper);
+        User user = userMapper.selectOne(queryWrapper);
+        if (user == null) {
+            return null;
+        }
+        // 无过期时间（历史遗留令牌）或已过期，均视为登录失效
+        if (user.getTokenExpireTime() == null || !user.getTokenExpireTime().after(new Date())) {
+            return null;
+        }
+        // 封号用户的存量令牌立即失效
+        if (user.getStatus() != null && user.getStatus() == User.StatusBanned) {
+            return null;
+        }
+        return user;
+    }
+
+    @Override
+    public void logout(String token) {
+        if (StringUtils.isBlank(token)) {
+            return;
+        }
+        UpdateWrapper<User> wrapper = new UpdateWrapper<>();
+        wrapper.set("token", null)
+                .set("token_expire_time", null)
+                .eq("token", token);
+        userMapper.update(null, wrapper);
     }
 
     @Override
@@ -164,10 +246,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user == null || !matchesPassword(password, user.getPassword())) {
             return null;
         }
+        checkNotBanned(user);
         if (user.getRole() == null || user.getRole() <= User.NormalUser) {
             return null;
         }
-        return clearSensitive(upgradePasswordIfNeeded(user, password));
+        return clearSensitive(rotateToken(upgradePasswordIfNeeded(user, password)));
     }
     
     @Override
@@ -176,10 +259,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user == null || !matchesPassword(password, user.getPassword())) {
             return null;
         }
+        checkNotBanned(user);
         if (user.getRole() == null || user.getRole() != User.NormalUser) {
             return null;
         }
-        return clearSensitive(upgradePasswordIfNeeded(user, password));
+        return clearSensitive(rotateToken(upgradePasswordIfNeeded(user, password)));
     }
     
     @Override
@@ -192,6 +276,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 加密密码并设置token
         user.setPassword(encryptPassword(user.getPassword()));
         user.setToken(generateToken(user.getUsername()));
+        user.setTokenExpireTime(calculateTokenExpireTime());
         
         // 设置默认值
         user.setRole(User.NormalUser);
@@ -218,6 +303,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 更新为新算法密文
         user.setPassword(encryptPassword(newPassword));
         userMapper.updateById(user);
+        // 改密成功后旧令牌立即失效，强制重新登录
+        invalidateTokenByUserId(userId);
         return true;
     }
     

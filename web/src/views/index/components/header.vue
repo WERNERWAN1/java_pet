@@ -36,9 +36,6 @@
                 <a @click="goUserCenter('myOrder')">我的订单</a>
               </a-menu-item>
               <a-menu-item>
-                <a @click="goUserCenter('recharge')">余额充值</a>
-              </a-menu-item>
-              <a-menu-item>
                 <a @click="goUserCenter('userInfoEditView')">个人设置</a>
               </a-menu-item>
               <a-menu-item>

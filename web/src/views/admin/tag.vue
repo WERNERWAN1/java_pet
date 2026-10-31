@@ -207,13 +207,9 @@
     modal.visile = true;
     modal.editFlag = true;
     modal.title = '编辑';
-    // 重置
-    for (const key in modal.form) {
-      modal.form[key] = undefined;
-    }
-    for (const key in record) {
-      modal.form[key] = record[key];
-    }
+    // 仅回填表单字段，避免把旧的审计字段提交给后端
+    modal.form.id = record.id;
+    modal.form.title = record.title;
   };
 
   const confirmDelete = (record: any) => {
@@ -300,10 +296,8 @@
 
   .table-operations {
     margin-bottom: 16px;
-    text-align: right;
-  }
-
-  .table-operations > button {
-    margin-right: 8px;
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
   }
 </style>

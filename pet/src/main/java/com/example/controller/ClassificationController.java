@@ -34,8 +34,8 @@ public class ClassificationController {
     BatchDeleteService batchDeleteService;
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
-    public APIResponse list(){
-        List<Classification> list =  service.getClassificationList();
+    public APIResponse list(String keyword){
+        List<Classification> list =  service.getClassificationList(keyword);
         return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
     }
 

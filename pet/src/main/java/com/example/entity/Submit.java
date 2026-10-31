@@ -24,7 +24,8 @@ public class Submit extends BaseEntity {
     private String img;
     @TableField
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    // 主格式为横线，同时兼容浏览器 toLocaleString() 产生的斜杠格式，避免类型转换失败
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss", fallbackPatterns = {"yyyy/MM/dd HH:mm:ss"})
     private Date time;
     /** 处理状态：1-待处理，2-已处理 */
     @TableField

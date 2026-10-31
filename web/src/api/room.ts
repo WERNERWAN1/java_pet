@@ -5,6 +5,7 @@ enum URL {
     create = '/api/room/create',
     update = '/api/room/update',
     delete = '/api/room/delete',
+    clear = '/api/room/clear',
 }
 
 const listApi = async (params: any) =>
@@ -29,4 +30,7 @@ const updateApi = async (data: any) =>
 const deleteApi = async (params: any) =>
     post<any>({url: URL.delete, params: params, headers: {}});
 
-export {listApi, createApi, updateApi, deleteApi};
+const clearApi = async (params: any) =>
+    post<any>({url: URL.clear, params: params, headers: {}});
+
+export {listApi, createApi, updateApi, deleteApi, clearApi};

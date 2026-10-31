@@ -9,6 +9,7 @@ import com.example.service.SubmitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -31,6 +32,10 @@ public class SubmitServiceImpl extends ServiceImpl<SubmitMapper, Submit> impleme
     public void addSubmit(Submit submit) {
         if (submit.getStatus() == null) {
             submit.setStatus(1);
+        }
+        // 上报时间以服务端时间为准，前端未传时自动补当前时间
+        if (submit.getTime() == null) {
+            submit.setTime(new Date());
         }
         submitMapper.insert(submit);
     }

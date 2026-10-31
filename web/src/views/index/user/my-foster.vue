@@ -35,7 +35,7 @@ const columns = reactive([
   {title: '体重', dataIndex: 'pet_weight', key: 'pet_weight', align: 'center', customRender: ({text}) => text ? text + ' kg' : '-'},
   {title: '入住日期', dataIndex: 'start_date', key: 'start_date', align: 'center'},
   {title: '托管天数', dataIndex: 'duration', key: 'duration', align: 'center'},
-  {title: '笼位编号', dataIndex: 'cage_no', key: 'cage_no', align: 'center'},
+  {title: '房间编号', dataIndex: 'room_name', key: 'room_name', align: 'center', customRender: ({text}) => text || '-'},
   {title: '状态', dataIndex: 'progress', key: 'progress', align: 'center'},
 ]);
 

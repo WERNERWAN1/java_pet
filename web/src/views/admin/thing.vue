@@ -6,7 +6,7 @@
         <a-space>
           <a-button type="primary" @click="handleAdd">新增</a-button>
           <a-button @click="handleBatchDelete">批量删除</a-button>
-          <a-input-search addon-before="名称" enter-button @search="onSearch" @change="onSearchChange" />
+          <a-input-search addon-before="名称" enter-button placeholder="请输入" style="width: 280px;" @search="onSearch" @change="onSearchChange" />
         </a-space>
       </div>
       <a-table
@@ -27,6 +27,16 @@
         }"
       >
         <template #bodyCell="{ text, record, index, column }">
+          <template v-if="column.key === 'cover'">
+            <a-image
+                v-if="record.cover"
+                :src="getImgUrl(record.cover)"
+                :width="60"
+                :height="60"
+                style="object-fit: cover;"
+            />
+            <span v-else style="color: #ccc;">暂无图片</span>
+          </template>
           <template v-if="column.key === 'operation'">
             <span>
               <a @click="handleEdit(record)">编辑</a>
@@ -161,6 +171,8 @@ import {BASE_URL} from "/@/store/constants";
 import {getFormatTime} from "/@/utils";
 import { FileImageOutlined } from '@ant-design/icons-vue';
 
+const getImgUrl = (img: string) => BASE_URL + '/api/staticfiles/image/' + img;
+
 const columns = reactive([
 
   {
@@ -168,6 +180,13 @@ const columns = reactive([
     dataIndex: 'index',
     key: 'index',
     width: 60
+  },
+  {
+    title: '封面',
+    dataIndex: 'cover',
+    key: 'cover',
+    align: 'center',
+    width: 90
   },
   {
     title: '名称',
@@ -185,25 +204,15 @@ const columns = reactive([
     key: 'sex'
   },
   {
-    title: '地址',
-    dataIndex: 'address',
-    key: 'address'
-  },
-  {
     title: '价格',
     dataIndex: 'price',
-    key: 'price'
+    key: 'price',
+    customRender: ({ text }) => (text !== null && text !== undefined && text !== '') ? `¥${text}` : '--'
   },
   {
     title: '库存',
     dataIndex: 'stock',
     key: 'stock'
-  },
-  {
-    title: '简介',
-    dataIndex: 'description',
-    key: 'description',
-    customRender: ({ text, record, index, column }) => text ? text.substring(0, 10) + '...' : '--'
   },
   {
     title: '状态',
@@ -509,10 +518,8 @@ const hideModal = () => {
 
 .table-operations {
   margin-bottom: 16px;
-  text-align: right;
-}
-
-.table-operations > button {
-  margin-right: 8px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
 }
 </style>

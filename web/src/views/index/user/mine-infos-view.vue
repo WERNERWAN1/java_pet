@@ -61,10 +61,6 @@
           <img :src="MyOrderImg">
           <span>用品订单</span>
         </div>
-        <div class="mine-item flex-view" @click="clickMenu('recharge')">
-          <img :src="PointIconImage">
-          <span>余额充值</span>
-        </div>
       </div>
     </div>
     <div class="setting-box">

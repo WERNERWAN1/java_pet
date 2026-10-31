@@ -81,6 +81,21 @@ public class AccessInterceptor extends HandlerInterceptorAdapter {
             }
         }
 
+        // 管理员或登录用户（同一接口同时服务前台用户与后台管理员）
+        if(access.level().getCode() == AccessLevel.ADMIN_OR_LOGIN.getCode()) {
+            User admin = userService.getUserByToken(request.getHeader("ADMINTOKEN"));
+            if(admin != null && admin.getRole() != null && admin.getRole() == User.AdminUser){
+                return true;
+            }
+            User loginUser = userService.getUserByToken(request.getHeader("TOKEN"));
+            if(loginUser != null && loginUser.getRole() != null && loginUser.getRole() == User.NormalUser){
+                return true;
+            }
+            APIResponse apiResponse = new APIResponse(ResponeCode.FAIL, "未登录");
+            writeResponse(response, apiResponse);
+            return false;
+        }
+
         // 用户
         if(access.level().getCode() == AccessLevel.LOGIN.getCode()) {
             String token = request.getHeader("TOKEN");

@@ -5,8 +5,10 @@
         <a-space>
           <a-input-search
               v-model:value="data.keyword"
-              placeholder="搜索商品名称"
-              style="width: 250px;"
+              addon-before="商品名称"
+              enter-button
+              placeholder="请输入"
+              style="width: 280px;"
               @search="handleSearch"
               allow-clear
           />
@@ -30,7 +32,7 @@
             <span v-else style="color: #ccc;">暂无图片</span>
           </template>
           <template v-if="column.key === 'price'">
-            <span style="color: #ff4d4f; font-weight: bold;">¥{{ text }}</span>
+            <span>¥{{ text }}</span>
           </template>
           <template v-if="column.key === 'operation'">
             <span>
@@ -95,6 +97,11 @@
                   <a-input-number placeholder="请输入数量" v-model:value="modal.form.num" style="width: 100%;" :min="0"></a-input-number>
                 </a-form-item>
               </a-col>
+              <a-col span="12">
+                <a-form-item label="计量单位" name="unit">
+                  <a-input placeholder="如：件 / 袋 / 包 / 盒" v-model:value="modal.form.unit"></a-input>
+                </a-form-item>
+              </a-col>
             </a-row>
           </a-form>
         </div>
@@ -137,6 +144,7 @@ const columns = [
   {title: '商品名称', dataIndex: 'name', key: 'name', align: 'center'},
   {title: '商品价格', dataIndex: 'price', key: 'price', align: 'center'},
   {title: '商品数量', dataIndex: 'num', key: 'num', align: 'center'},
+  {title: '单位', dataIndex: 'unit', key: 'unit', align: 'center', width: 80, customRender: ({text}) => text || '件'},
   {title: '创建人', dataIndex: 'createByName', key: 'createByName', align: 'center', width: 100, customRender: ({text}) => text || '--'},
   {title: '创建时间', dataIndex: 'createTime', key: 'createTime', align: 'center', width: 170, customRender: ({text}) => getFormatTime(text, true) || '--'},
   {title: '修改人', dataIndex: 'updateByName', key: 'updateByName', align: 'center', width: 100, customRender: ({text}) => text || '--'},
@@ -175,7 +183,7 @@ const updatePageData = () => {
 
 const modal = reactive({
   visile: false, editFlag: false, title: '',
-  form: {id: undefined as any, name: undefined as any, price: undefined as any, num: undefined as any, img: undefined as any, imgUrl: undefined as any, imageFile: undefined as any},
+  form: {id: undefined as any, name: undefined as any, price: undefined as any, num: undefined as any, unit: undefined as any, img: undefined as any, imgUrl: undefined as any, imageFile: undefined as any},
   rules: {name: [{required: true, message: '请输入', trigger: 'change'}], price: [{required: true, message: '请输入', trigger: 'change'}]},
 });
 
@@ -207,6 +215,7 @@ const rowSelection = ref({onChange: (selectedRowKeys: (string | number)[]) => { 
 const handleAdd = () => {
   resetModal(); modal.visile = true; modal.editFlag = false; modal.title = '新增用品';
   for (const key in modal.form) { (modal.form as any)[key] = undefined; }
+  modal.form.unit = '件';
   fileList.value = [];
 };
 
@@ -238,6 +247,7 @@ const handleOk = () => {
     formData.append('name', modal.form.name || '');
     formData.append('price', modal.form.price || 0);
     formData.append('num', modal.form.num || 0);
+    formData.append('unit', modal.form.unit || '件');
     if (modal.form.imageFile) {
       formData.append('imageFile', modal.form.imageFile);
     }

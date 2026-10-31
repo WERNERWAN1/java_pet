@@ -236,6 +236,7 @@ const rowSelection = ref({onChange: (keys: (string | number)[]) => { data.select
   margin-bottom: 16px;
   display: flex;
   justify-content: flex-start;
+  gap: 8px;
 }
 .pet-avatar {
   width: 40px;

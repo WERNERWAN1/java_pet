@@ -122,7 +122,7 @@ const columns = [
   {title: '寄养时间', dataIndex: 'start_date', key: 'start_date', align: 'center', sorter: (a, b) => (a.start_date || '').localeCompare(b.start_date || '')},
   {title: '寄养天数', dataIndex: 'duration', key: 'duration', align: 'center', sorter: (a, b) => (a.duration || 0) - (b.duration || 0)},
   {title: '寄养状态', dataIndex: 'progress', key: 'progress', align: 'center'},
-  {title: '寄养房间', dataIndex: 'cage_no', key: 'cage_no', align: 'center'},
+  {title: '寄养房间', dataIndex: 'room_name', key: 'room_name', align: 'center', customRender: ({record}) => record.room_name || '-'},
   {title: '创建人', dataIndex: 'create_by_name', key: 'create_by_name', align: 'center', width: 100, customRender: ({record}) => record.create_by_name || record.createByName || '--'},
   {title: '创建时间', dataIndex: 'create_time', key: 'create_time', align: 'center', width: 170, customRender: ({record}) => getFormatTime(record.create_time || record.createTime, true) || '--'},
   {title: '修改人', dataIndex: 'update_by_name', key: 'update_by_name', align: 'center', width: 100, customRender: ({record}) => record.update_by_name || record.updateByName || '--'},
@@ -231,5 +231,5 @@ const handleDelete = (record: any) => {
 
 <style scoped lang="less">
 .page-view { min-height: 100%; background: #fff; padding: 24px; display: flex; flex-direction: column; }
-.table-operations { margin-bottom: 16px; display: flex; justify-content: flex-start; }
+.table-operations { margin-bottom: 16px; display: flex; justify-content: flex-start; gap: 8px; }
 </style>

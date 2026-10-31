@@ -231,10 +231,8 @@ const handleBatchDelete = () => {
 
 .table-operations {
   margin-bottom: 16px;
-  text-align: right;
-}
-
-.table-operations > button {
-  margin-right: 8px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
 }
 </style>

@@ -8,7 +8,7 @@
           <img v-if="goods.img" :src="getImgUrl(goods.img)" class="goods-img" />
           <div class="info">
             <h3>{{ goods.name }}</h3>
-            <p class="price">¥{{ goods.price }}</p>
+            <p class="price">¥{{ goods.price }}<span class="unit" v-if="goods.unit">/{{ goods.unit }}</span></p>
           </div>
         </div>
         <a-divider />
@@ -38,6 +38,7 @@
         <a-form :label-col="{ style: { width: '80px' } }" :model="form">
           <a-form-item label="购买数量">
             <a-input-number v-model:value="form.num" :min="1" :max="goods.num" style="width: 200px;" />
+            <span class="unit-text" v-if="goods.unit">{{ goods.unit }}</span>
           </a-form-item>
           <a-form-item label="收货人">
             <a-input v-model:value="form.username" placeholder="请输入收货人姓名" />
@@ -150,10 +151,13 @@ onMounted(() => {
   .goods-img { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; }
   .info {
     h3 { font-size: 18px; color: #333; }
-    .price { color: #ff4d4f; font-size: 24px; font-weight: bold; margin-top: 8px; }
+    .price { color: #ff4d4f; font-size: 24px; font-weight: bold; margin-top: 8px;
+      .unit { font-size: 14px; font-weight: normal; color: #999; margin-left: 2px; }
+    }
   }
 }
 .total-row { margin-bottom: 16px; font-size: 16px; }
+.unit-text { margin-left: 8px; color: #999; }
 .address-section {
   h4 { color: #333; font-size: 15px; }
 }

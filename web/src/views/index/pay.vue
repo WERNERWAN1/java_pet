@@ -10,8 +10,7 @@
       </div>
       <div class="text">支付金额</div>
       <div class="price">
-        <span class="num">{{ amount }}</span>
-        <span>元</span>
+        <span class="num">¥{{ amount }}</span>
       </div>
       <div class="pay-choose-view" style="">
         <div class="pay-choose-box flex-view">

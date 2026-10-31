@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
 
@@ -58,6 +59,20 @@ public class UserController {
         }else {
             return new APIResponse(ResponeCode.FAIL, "用户名或密码错误");
         }
+    }
+
+    // 退出登录：使当前令牌立即失效
+    @RequestMapping(value = "/logout", method = RequestMethod.POST)
+    public APIResponse logout(String type, HttpServletRequest request) {
+        if ("admin".equals(type)) {
+            userService.logout(request.getHeader("ADMINTOKEN"));
+        } else if ("user".equals(type)) {
+            userService.logout(request.getHeader("TOKEN"));
+        } else {
+            userService.logout(request.getHeader("ADMINTOKEN"));
+            userService.logout(request.getHeader("TOKEN"));
+        }
+        return new APIResponse(ResponeCode.SUCCESS, "退出成功");
     }
 
     // 普通用户登录

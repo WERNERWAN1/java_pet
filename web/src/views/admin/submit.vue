@@ -5,8 +5,10 @@
         <a-space>
           <a-input-search
               v-model:value="data.keyword"
-              placeholder="搜索上报说明"
-              style="width: 250px;"
+              addon-before="上报说明"
+              enter-button
+              placeholder="请输入"
+              style="width: 280px;"
               @search="handleSearch"
               allow-clear
           />

@@ -47,9 +47,10 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         Long userId = currentUser != null ? Long.valueOf(currentUser.getId()) : null;
         String username = currentUser != null ? currentUser.getUsername() : null;
 
-        this.strictUpdateFill(metaObject, "updateBy", Long.class, userId);
-        this.strictUpdateFill(metaObject, "updateByName", String.class, username);
-        this.strictUpdateFill(metaObject, "updateTime", Date.class, new Date());
+        // 使用非严格填充强制覆盖，避免前端回传的旧审计字段（修改人/修改时间）覆盖当前值
+        this.setFieldValByName("updateBy", userId, metaObject);
+        this.setFieldValByName("updateByName", username, metaObject);
+        this.setFieldValByName("updateTime", new Date(), metaObject);
     }
 
     /**

@@ -162,11 +162,6 @@ const constantRouterMap = [
             name: 'myOrder',
             component: () => import('/@/views/index/user/my-order.vue')
           },
-          {
-            path: 'recharge',
-            name: 'recharge',
-            component: () => import('/@/views/index/user/recharge.vue')
-          },
         ]
       }
     ]

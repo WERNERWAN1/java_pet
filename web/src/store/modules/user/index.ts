@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import {loginApi as adminLogin, userLoginApi} from '/@/api/user';
+import {loginApi as adminLogin, userLoginApi, logoutApi} from '/@/api/user';
 import { setToken, clearToken } from '/@/utils/auth';
 import { UserState } from './types';
 import {USER_ID, USER_NAME, USER_TOKEN, ADMIN_USER_ID,ADMIN_USER_NAME,ADMIN_USER_TOKEN} from "/@/store/constants";
@@ -38,7 +38,8 @@ export const useUserStore = defineStore('user', {
     },
     // 用户登出
     async logout() {
-      // await userLogout();
+      // 先通知后端使当前令牌失效，再清理本地登录态
+      await logoutApi({type: 'user'}).catch(() => {});
       this.$patch((state)=>{
         localStorage.removeItem(USER_ID)
         localStorage.removeItem(USER_NAME)
@@ -72,7 +73,8 @@ export const useUserStore = defineStore('user', {
     },
     // 管理员登出
     async adminLogout() {
-      // await userLogout();
+      // 先通知后端使当前令牌失效，再清理本地登录态
+      await logoutApi({type: 'admin'}).catch(() => {});
       this.$patch((state)=>{
         localStorage.removeItem(ADMIN_USER_ID)
         localStorage.removeItem(ADMIN_USER_NAME)

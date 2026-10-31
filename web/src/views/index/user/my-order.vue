@@ -14,11 +14,11 @@
           <template v-if="column.key === 'status'">
             <a-tag :color="getStatusColor(text)">{{ getStatusText(text) }}</a-tag>
           </template>
-          <template v-if="column.key === 'price'">
-            <span style="color: #ff4d4f; font-weight: bold;">¥{{ text }}</span>
+          <template v-if="column.key === 'amount'">
+            <span style="color: #ff4d4f; font-weight: bold;">¥{{ Number(text ?? 0).toFixed(2) }}</span>
           </template>
           <template v-if="column.key === 'operation'">
-            <a-popconfirm v-if="Number(record.status) === 1" title="确认收货?" ok-text="是" cancel-text="否" @confirm="handleConfirm(record)">
+            <a-popconfirm v-if="Number(record.status) === 1 || Number(record.status) === 2" title="确认收货?" ok-text="是" cancel-text="否" @confirm="handleConfirm(record)">
               <a>收货</a>
             </a-popconfirm>
             <a-popconfirm v-if="Number(record.status) === 1" title="确定取消?" ok-text="是" cancel-text="否" @confirm="handleCancel(record)">
@@ -40,11 +40,11 @@ const list = ref([]);
 const userId = localStorage.getItem('user_id');
 
 const columns = reactive([
-  {title: '订单编号', dataIndex: 'order_number', key: 'order_number', align: 'center'},
+  {title: '订单编号', dataIndex: 'orderNumber', key: 'orderNumber', align: 'center'},
   {title: '商品', dataIndex: 'title', key: 'title', align: 'center'},
   {title: '数量', dataIndex: 'count', key: 'count', align: 'center'},
-  {title: '金额', dataIndex: 'price', key: 'price', align: 'center'},
-  {title: '下单时间', dataIndex: 'order_time', key: 'order_time', align: 'center'},
+  {title: '金额', dataIndex: 'amount', key: 'amount', align: 'center'},
+  {title: '下单时间', dataIndex: 'orderTime', key: 'orderTime', align: 'center'},
   {title: '状态', dataIndex: 'status', key: 'status', align: 'center'},
   {title: '操作', dataIndex: 'action', key: 'operation', align: 'center', width: 140},
 ]);

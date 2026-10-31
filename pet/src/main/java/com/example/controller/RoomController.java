@@ -3,6 +3,8 @@ package com.example.controller;
 import com.example.common.APIResponse;
 import com.example.common.ResponeCode;
 import com.example.entity.Room;
+import com.example.permission.Access;
+import com.example.permission.AccessLevel;
 import com.example.service.RoomService;
 import com.example.service.BatchDeleteService;
 import com.example.service.FileUploadService;
@@ -53,6 +55,19 @@ public class RoomController {
         }
         roomService.updateRoom(room);
         return new APIResponse(ResponeCode.SUCCESS, "更新成功");
+    }
+
+    @Access(level = AccessLevel.ADMIN)
+    @RequestMapping(value = "/clear", method = RequestMethod.POST)
+    @Transactional
+    public APIResponse clear(Long id) {
+        try {
+            roomService.clearRoom(id);
+            return new APIResponse(ResponeCode.SUCCESS, "房间已清空");
+        } catch (RuntimeException e) {
+            // 房间不存在等业务校验失败，返回可读提示
+            return new APIResponse(ResponeCode.FAIL, e.getMessage());
+        }
     }
 
     @RequestMapping(value = "/delete", method = RequestMethod.POST)

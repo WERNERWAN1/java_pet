@@ -85,7 +85,7 @@
 import {listApi as listClassificationList} from '/@/api/classification'
 import {listApi as listTagList} from '/@/api/tag'
 import {listApi as listThingList} from '/@/api/petProduct'
-import {listApi as listAdList} from '/@/api/ad'
+import {listValidApi as listAdList} from '/@/api/ad'
 import {BASE_URL} from "/@/store/constants";
 import {useUserStore} from "/@/store";
 import {LeftOutlined, RightOutlined} from '@ant-design/icons-vue';

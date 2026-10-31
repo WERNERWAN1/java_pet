@@ -36,7 +36,7 @@ public class SubmitController {
         return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
     }
 
-    @Access(level = AccessLevel.LOGIN)
+    @Access(level = AccessLevel.ADMIN_OR_LOGIN)
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @Transactional
     public APIResponse create(Submit submit) throws IOException {

@@ -68,6 +68,8 @@ public class FosterController {
                 if (room != null) {
                     room.setStatus(2);
                     room.setAnimal(foster.getPetName());
+                    // 同步寄养宠物照片，房间管理页可直接查看待寄养宠物
+                    room.setAnimalPhoto(foster.getPetPhoto());
                     roomService.updateRoom(room);
                 }
             }
@@ -106,7 +108,8 @@ public class FosterController {
             }
         }
         Integer progress = newProgress != null ? newProgress : old.getProgress();
-        if (progress != null && (progress == 3 || progress == 4)) {
+        boolean released = progress != null && (progress == 3 || progress == 4);
+        if (released) {
             Integer cageNo = (old.getCageNo() != null) ? old.getCageNo() : foster.getCageNo();
             if (cageNo != null) {
                 Room used = roomService.getById(cageNo);
@@ -123,11 +126,16 @@ public class FosterController {
         }
         if (foster.getCageNo() != null) {
             old.setCageNo(foster.getCageNo());
-            Room room = roomService.getById(foster.getCageNo());
-            if (room != null) {
-                room.setStatus(2);
-                room.setAnimal(old.getPetName());
-                roomService.updateRoom(room);
+            // 寄养结束/拒绝时房间保持空闲，不再重新占用
+            if (!released) {
+                Room room = roomService.getById(foster.getCageNo());
+                if (room != null) {
+                    room.setStatus(2);
+                    room.setAnimal(old.getPetName());
+                    // 同步寄养宠物照片，房间管理页可直接查看待寄养宠物
+                    room.setAnimalPhoto(old.getPetPhoto());
+                    roomService.updateRoom(room);
+                }
             }
         }
         fosterService.updateFoster(old);

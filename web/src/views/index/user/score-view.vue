@@ -3,6 +3,7 @@
     <div class="list-title">我的积分</div>
     <div class="my-score-view">
       <div class="score-title">积分余额：{{score}}</div>
+      <div class="score-tip">订单确认收货后，按实付金额 1 元 = 1 积分自动发放（不足 1 元不计）</div>
     </div>
   </div>
 </template>
@@ -61,6 +62,12 @@ const getUserInfo =()=> {
     color: #111111;
     font-size: 14px;
     font-weight: 700;
+  }
+
+  .score-tip {
+    margin-top: 12px;
+    color: #999;
+    font-size: 13px;
   }
 
 }

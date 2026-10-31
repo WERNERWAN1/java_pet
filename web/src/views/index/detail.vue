@@ -63,19 +63,37 @@
         <div class="flex-view">
           <div class="main-content">
             <div class="main-tab">
-              <span class="tab" :class="{ 'tab-select': selectTabIndex == index }" v-for="(item, index) in tabData" :key="index" @click="selectTab(index)">{{ item }}</span>
+              <a-button
+                  v-for="(item, index) in tabData"
+                  :key="index"
+                  class="tab-btn"
+                  :type="selectTabIndex === index ? 'primary' : 'default'"
+                  @click="selectTab(index)"
+              >{{ item }}</a-button>
             </div>
             <!-- 简介 -->
             <div v-if="selectTabIndex == 0">
-              <div class="text" v-if="detailData.description">{{ detailData.description }}</div>
-              <div class="text" v-else>暂无简介</div>
+              <div class="intro-box" ref="introBoxRef" :class="{ 'intro-collapsed': introOverflow && !introExpanded }">
+                <div class="text" v-if="detailData.description">{{ detailData.description }}</div>
+                <div class="text intro-empty" v-else>暂无简介</div>
+              </div>
+              <div class="intro-toggle" v-if="introOverflow" @click="introExpanded = !introExpanded">
+                {{ introExpanded ? '收起' : '展开全部' }}
+              </div>
             </div>
             <!-- 评论 -->
             <div v-if="selectTabIndex == 1">
               <div class="thing-comment">
                 <div class="publish">
-                  <input class="content-input" ref="commentRef" placeholder="写评论...">
-                  <button class="send-btn" @click="sendComment">发布</button>
+                  <a-textarea
+                      v-model:value="commentText"
+                      class="content-input"
+                      :maxlength="500"
+                      :auto-size="{ minRows: 3, maxRows: 6 }"
+                      show-count
+                      :placeholder="isLogin ? '说点什么...' : '登录后即可发表评论'"
+                  />
+                  <a-button type="primary" class="send-btn" :loading="sending" @click="sendComment">发布</a-button>
                 </div>
                 <div class="tab-view">
                   <span class="count-text">共{{ commentData.length }}条评论</span>
@@ -86,18 +104,24 @@
                   </div>
                 </div>
               </div>
-              <div class="comments-list">
-                <div class="comment-item" v-for="item in commentData" :key="item.id">
-                  <div class="flex-item">
-                    <img class="avator" :src="AvatarIcon" alt="">
-                    <div class="person">
-                      <span class="name">{{ item.nickname || '匿名用户' }}</span>
-                      <div class="time">{{ item.commentTime }}</div>
+              <a-spin :spinning="commentLoading">
+                <div class="comments-list">
+                  <div class="comment-item" v-for="item in commentData" :key="item.id">
+                    <div class="flex-item">
+                      <img class="avator" :src="AvatarIcon" alt="">
+                      <div class="person">
+                        <span class="name">{{ item.nickname || item.username || '匿名用户' }}</span>
+                        <div class="time">{{ item.commentTime }}</div>
+                      </div>
+                      <div class="float-right">
+                        <span :class="{ liked: item.liked }" @click="like(item)">赞<span class="num">{{ item.likeCount || 0 }}</span></span>
+                      </div>
                     </div>
+                    <div class="comment-content">{{ item.content }}</div>
                   </div>
-                  <div class="comment-content">{{ item.content }}</div>
+                  <a-empty v-if="!commentLoading && commentData.length === 0" description="还没有评论，快来抢沙发吧" />
                 </div>
-              </div>
+              </a-spin>
             </div>
           </div>
           <!-- 推荐 -->
@@ -150,7 +174,7 @@ const userStore = useUserStore();
 let thingId = ref('')
 let detailData = ref({})
 let tabUnderLeft = ref(6)
-let tabData = ref(['简介', '评论'])
+let tabData = computed(() => ['简介', `评论${commentData.value.length ? ` (${commentData.value.length})` : ''}`])
 let selectTabIndex = ref(0)
 
 let commentData = ref([])
@@ -158,7 +182,15 @@ let recommendData = ref([])
 let sortIndex = ref(0)
 let order = ref('recent') // 默认排序最新
 
-let commentRef = ref()
+// 评论输入与加载态
+let commentText = ref('')
+let sending = ref(false)
+let commentLoading = ref(false)
+// 简介过长时默认收起，点击展开
+let introExpanded = ref(false)
+let introOverflow = ref(false)
+let introBoxRef = ref()
+const isLogin = computed(() => !!(userStore.user_id || localStorage.getItem('user_id')))
 
 onMounted(()=>{
   thingId.value = route.query.id.trim()
@@ -176,8 +208,19 @@ const getThingDetail =()=> {
   detailApi({id: thingId.value}).then(res => {
     detailData.value = res.data
     detailData.value.cover = BASE_URL + '/api/staticfiles/image/' + detailData.value.cover
+    // 内容渲染完成后测量实际高度，超过一屏再显示“展开全部”
+    checkIntroOverflow()
   }).catch(err => {
     message.error('获取详情失败')
+  })
+}
+
+const checkIntroOverflow = () => {
+  nextTick(() => {
+    const el = introBoxRef.value
+    if (el) {
+      introOverflow.value = el.scrollHeight > 280
+    }
   })
 }
 const addToWish =()=> {
@@ -251,40 +294,60 @@ const handleDetail =(item)=> {
   window.open(text.href, '_blank')
 }
 const sendComment =()=> {
-  console.log(commentRef.value)
-  let text = commentRef.value.value.trim()
-  console.log(text)
-  if (text.length <= 0) {
+  const text = commentText.value.trim()
+  if (!text) {
+    message.warn('请输入评论内容')
     return
   }
-  commentRef.value.value = ''
-  let userId = userStore.user_id
-  if (userId) {
-    createCommentApi({content: text, productId: thingId.value, userId: userId}).then(res => {
-      getCommentList()
-    }).catch(err => {
-      console.log(err)
-    })
-  } else {
-    message.warn('请先登录！')
-    router.push({name: 'login'})
+  const userId = userStore.user_id || localStorage.getItem('user_id')
+  if (!userId) {
+    // 不跳转登录，避免输入内容丢失
+    message.warn('请先登录后再发表评论')
+    return
   }
-}
-const like =(commentId)=> {
-  likeApi({id: commentId}).then(res => {
+  sending.value = true
+  createCommentApi({content: text, productId: thingId.value, userId: userId}).then(res => {
+    message.success('评论成功')
+    // 发布后清空输入并切到最新排序，保证新评论立即可见
+    commentText.value = ''
+    sortIndex.value = 0
+    order.value = 'recent'
     getCommentList()
+    sending.value = false
   }).catch(err => {
-    console.log(err)
+    message.error(err.msg || '评论失败')
+    sending.value = false
+  })
+}
+const like =(item)=> {
+  if (item.liked) {
+    return
+  }
+  const userId = userStore.user_id || localStorage.getItem('user_id')
+  if (!userId) {
+    message.warn('请先登录！')
+    return
+  }
+  likeApi({id: item.id}).then(res => {
+    // 本地就地更新，避免整列表重排导致阅读位置丢失
+    item.liked = true
+    item.likeCount = Number(item.likeCount || 0) + 1
+  }).catch(err => {
+    message.error(err.msg || '点赞失败')
   })
 }
 const getCommentList =()=> {
+  commentLoading.value = true
   listProductCommentsApi({productId: thingId.value, order: order.value}).then(res => {
-    res.data.forEach(item => {
+    const list = res.data || []
+    list.forEach(item => {
       item.commentTime = getFormatTime(item.commentTime, true)
     })
-    commentData.value = res.data
+    commentData.value = list
+    commentLoading.value = false
   }).catch(err => {
-    console.log(err)
+    commentLoading.value = false
+    message.error('获取评论失败')
   })
 }
 const sortCommentList =(sortType)=> {
@@ -580,10 +643,55 @@ const sortCommentList =(sortType)=> {
     margin: 11px 0;
     white-space: pre-wrap;
   }
+
+  .intro-box {
+    position: relative;
+
+    &.intro-collapsed {
+      max-height: 260px;
+      overflow: hidden;
+
+      &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 64px;
+        background: linear-gradient(rgba(255, 255, 255, 0), #fff);
+      }
+    }
+  }
+
+  .intro-empty {
+    color: #999;
+  }
+
+  .intro-toggle {
+    display: inline-block;
+    margin: 4px 0 8px 12px;
+    color: #4684e2;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 .main-tab {
+  display: flex;
+  gap: 12px;
+  padding: 0 12px 12px;
   border-bottom: 1px solid #cedce4;
+
+  .tab-btn {
+    min-width: 96px;
+    height: 36px;
+    font-size: 14px;
+  }
 }
 
 .order-view {
@@ -724,9 +832,9 @@ const sortCommentList =(sortType)=> {
   }
 
   .publish {
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    align-items: center;
+    -webkit-box-align: start;
+    -ms-flex-align: start;
+    align-items: flex-start;
 
     .mine-img {
       -webkit-box-flex: 0;
@@ -744,30 +852,21 @@ const sortCommentList =(sortType)=> {
       flex: 1;
       background: #f6f9fb;
       border-radius: 4px;
-      height: 32px;
-      line-height: 32px;
       color: #484848;
-      padding: 5px 12px;
-      white-space: nowrap;
+      padding: 8px 12px;
+      font-size: 14px;
+      line-height: 22px;
       outline: none;
       border: 0px;
+      resize: none;
     }
 
     .send-btn {
-      margin-left: 10px;
-      background: #4684e2;
-      border-radius: 4px;
+      margin-left: 12px;
       -webkit-box-flex: 0;
       -ms-flex: 0 0 80px;
       flex: 0 0 80px;
-      color: #fff;
-      font-size: 14px;
-      text-align: center;
-      height: 32px;
-      line-height: 32px;
-      outline: none;
-      border: 0px;
-      cursor: pointer;
+      height: 40px;
     }
   }
 
@@ -863,6 +962,11 @@ const sortCommentList =(sortType)=> {
           cursor: pointer;
         }
 
+        .liked {
+          color: #ff4d4f;
+          cursor: default;
+        }
+
         .num {
           color: #152844;
           margin-left: 6px;
@@ -883,6 +987,7 @@ const sortCommentList =(sortType)=> {
   margin-left: 52px;
   overflow: hidden;
   word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .infinite-loading-container {

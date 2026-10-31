@@ -29,7 +29,7 @@
               <a-button type="primary" size="small" style="margin-right: 24px;">取消</a-button>
             </a-popconfirm>
             <span class="text">订单状态</span>
-            <span class="state">{{Number(item.status)===1? '待支付': Number(item.status) === 2? '已支付':'已取消'}}</span>
+            <span class="state">{{Number(item.status)===1? '待支付': Number(item.status) === 2? '已支付' : Number(item.status) === 3? '已完成' : '已取消'}}</span>
           </div>
         </div>
         <div class="content flex-view">

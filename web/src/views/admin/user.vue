@@ -6,7 +6,7 @@
         <a-space>
           <a-button type="primary" @click="handleAdd">新增</a-button>
           <a-button @click="handleBatchDelete">批量删除</a-button>
-          <a-input-search addon-before="用户名" enter-button @search="onSearch" @change="onSearchChange" />
+          <a-input-search addon-before="用户名" enter-button placeholder="请输入" style="width: 280px;" @search="onSearch" @change="onSearchChange" />
         </a-space>
       </div>
       <a-table
@@ -475,10 +475,8 @@
 
   .table-operations {
     margin-bottom: 16px;
-    text-align: right;
-  }
-
-  .table-operations > button {
-    margin-right: 8px;
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
   }
 </style>

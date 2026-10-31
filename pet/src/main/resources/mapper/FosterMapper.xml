@@ -7,9 +7,11 @@
                A.start_date, A.duration, A.progress, A.cage_no,
                A.create_by, A.create_by_name, A.create_time,
                A.update_by, A.update_by_name, A.update_time,
-               B.username as client_name
+               B.username as client_name,
+               R.name as room_name
         from foster as A
         left join user as B on (A.client_uid=B.id)
+        left join room as R on (A.cage_no=R.id)
         <where>
             <if test="progress != null and progress != ''">
                 and A.progress = #{progress}

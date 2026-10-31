@@ -128,8 +128,7 @@ const handleSubmit = () => {
     submitting.value = true;
     const formData = new FormData();
     formData.append('name', form.name);
-    formData.append('time', new Date().toLocaleString());
-    formData.append('status', '1'); // 1-待处理
+    formData.append('status', '1'); // 1-待处理（上报时间由服务端生成，避免客户端时间格式/时区问题）
     if (form.imageFile) {
       formData.append('imageFile', form.imageFile);
     }

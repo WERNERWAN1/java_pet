@@ -24,6 +24,8 @@ public class Goods extends BaseEntity {
     private BigDecimal price;
     @TableField
     private Integer num;
+    @TableField
+    private String unit;
 
     @TableField(exist = false)
     private MultipartFile imageFile;

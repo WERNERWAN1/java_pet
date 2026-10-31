@@ -3,7 +3,7 @@
     <div class="page-view">
       <div class="table-operations">
         <a-space>
-          <a-input-search v-model:value="data.keyword" placeholder="搜索房间编号" style="width: 250px;" @search="handleSearch" allow-clear />
+          <a-input-search v-model:value="data.keyword" addon-before="房间编号" enter-button placeholder="请输入" style="width: 280px;" @search="handleSearch" allow-clear />
           <a-button type="primary" @click="handleAdd">新增</a-button>
           <a-button @click="handleBatchDelete">批量删除</a-button>
         </a-space>
@@ -22,6 +22,16 @@
             <span>
               <a @click="handleEdit(record)">编辑</a>
               <a-divider type="vertical" />
+              <a-popconfirm
+                  v-if="Number(record.status) === 2 || record.animal"
+                  title="清空后房间将置为空闲，并清除寄养宠物与照片，确定继续？"
+                  ok-text="是"
+                  cancel-text="否"
+                  @confirm="confirmClear(record)"
+              >
+                <a>清空</a>
+              </a-popconfirm>
+              <a-divider v-if="Number(record.status) === 2 || record.animal" type="vertical" />
               <a-popconfirm title="确定删除?" ok-text="是" cancel-text="否" @confirm="confirmDelete(record)"><a href="#">删除</a></a-popconfirm>
             </span>
           </template>
@@ -34,7 +44,7 @@
           <a-row :gutter="24">
             <a-col span="24"><a-form-item label="房间编号" name="name"><a-input placeholder="请输入房间编号" v-model:value="modal.form.name"></a-input></a-form-item></a-col>
             <a-col span="24"><a-form-item label="房间状态" name="status"><a-select placeholder="请选择状态" v-model:value="modal.form.status"><a-select-option :value="1">空闲</a-select-option><a-select-option :value="2">已占用</a-select-option><a-select-option :value="3">维护中</a-select-option></a-select></a-form-item></a-col>
-            <a-col span="24"><a-form-item label="寄养宠物" name="animal"><a-input placeholder="请输入寄养宠物名" v-model:value="modal.form.animal"></a-input></a-form-item></a-col>
+            <a-col span="24"><a-form-item label="宠物" name="animal"><a-input placeholder="请输入宠物名称" v-model:value="modal.form.animal"></a-input></a-form-item></a-col>
             <a-col span="24">
               <a-form-item label="宠物照片">
                 <a-upload-dragger name="file" accept="image/*" :multiple="false" :before-upload="beforeUpload" :file-list="fileList" @remove="handleRemove">
@@ -62,7 +72,7 @@
 
 <script setup lang="ts">
 import {FormInstance, message} from 'ant-design-vue';
-import {createApi, listApi, updateApi, deleteApi} from '/@/api/room';
+import {createApi, listApi, updateApi, deleteApi, clearApi} from '/@/api/room';
 import {BASE_URL} from "/@/store/constants";
 import {getFormatTime} from "/@/utils";
 import {FileImageOutlined} from '@ant-design/icons-vue';
@@ -95,13 +105,13 @@ const columns = [
   {title: '序号', dataIndex: 'index', key: 'index', align: 'center', width: 60},
   {title: '房间编号', dataIndex: 'name', key: 'name', align: 'center'},
   {title: '房间状态', dataIndex: 'status', key: 'status', align: 'center'},
-  {title: '寄养宠物', dataIndex: 'animal', key: 'animal', align: 'center'},
+  {title: '宠物', dataIndex: 'animal', key: 'animal', align: 'center'},
   {title: '宠物照片', dataIndex: 'animalPhoto', key: 'animalPhoto', align: 'center', width: 80},
   {title: '创建人', dataIndex: 'createByName', key: 'createByName', align: 'center', width: 100, customRender: ({text}) => text || '--'},
   {title: '创建时间', dataIndex: 'createTime', key: 'createTime', align: 'center', width: 170, customRender: ({text}) => getFormatTime(text, true) || '--'},
   {title: '修改人', dataIndex: 'updateByName', key: 'updateByName', align: 'center', width: 100, customRender: ({text}) => text || '--'},
   {title: '修改时间', dataIndex: 'updateTime', key: 'updateTime', align: 'center', width: 170, customRender: ({text}) => getFormatTime(text, true) || '--'},
-  {title: '操作', dataIndex: 'action', key: 'operation', align: 'center', fixed: 'right', width: 140},
+  {title: '操作', dataIndex: 'action', key: 'operation', align: 'center', fixed: 'right', width: 180},
 ];
 
 const data = reactive({allList: [] as any[], pageData: [] as any[], loading: false, keyword: '', selectedRowKeys: [] as any[], pageSize: 10, page: 1});
@@ -142,6 +152,12 @@ const rowSelection = ref({onChange: (keys: (string | number)[]) => { data.select
 const handleAdd = () => { resetModal(); modal.visile = true; modal.editFlag = false; modal.title = '新增房间'; for (const key in modal.form) { (modal.form as any)[key] = undefined; } fileList.value = []; };
 const handleEdit = (record: any) => { resetModal(); modal.visile = true; modal.editFlag = true; modal.title = '编辑房间'; for (const key in modal.form) { (modal.form as any)[key] = undefined; } for (const key in record) { (modal.form as any)[key] = record[key]; } fileList.value = []; };
 const confirmDelete = (record: any) => { deleteApi({ids: record.id}).then(() => { getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); }); };
+const confirmClear = (record: any) => {
+  clearApi({id: record.id}).then(() => {
+    message.success('房间已清空');
+    getDataList();
+  }).catch((err) => { message.error(err.msg || '清空失败'); });
+};
 const handleBatchDelete = () => { if (data.selectedRowKeys.length <= 0) { message.warn('请勾选删除项'); return; } deleteApi({ids: data.selectedRowKeys.join(',')}).then(() => { message.success('删除成功'); data.selectedRowKeys = []; getDataList(); }).catch((err) => { message.error(err.msg || '操作失败'); }); };
 const handleOk = () => {
   myform.value?.validate().then(() => {

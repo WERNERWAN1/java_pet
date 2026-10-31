@@ -14,7 +14,7 @@ import java.util.Date;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("order")
+@TableName("`order`")
 public class Order extends BaseEntity {
     /**
      * 订单类型数字编码：与库中 order_type tinyint 对应，展示文案由前端按映射渲染。
@@ -43,10 +43,21 @@ public class Order extends BaseEntity {
     @TableField
     public BigDecimal unitPrice;
     /**
-     * 成交金额快照：unitPrice × count，下单时固化，作为订单金额的唯一权威来源。
+     * 成交金额快照：unitPrice × count - discountAmount，下单时固化，作为订单实付金额的唯一权威来源。
      */
     @TableField
     public BigDecimal amount;
+    /**
+     * 优惠金额：管理端可调整，实付金额 = unitPrice × count - discountAmount。
+     */
+    @TableField
+    public BigDecimal discountAmount;
+    /**
+     * 已发放积分：确认收货（订单完成）时按实付金额 1 元=1 积分向下取整发放，
+     * 0 表示未发放；作为同一订单只发一次的幂等标记。
+     */
+    @TableField
+    public Integer awardScore;
     @TableField
     public Integer orderType; // 订单类型：1-宠物商品，2-宠物商城用品（见 PetProductOrder/GoodsOrder）
     @TableField

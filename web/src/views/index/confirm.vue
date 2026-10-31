@@ -28,7 +28,7 @@
         <div class="title flex-view">
           <h3>备注</h3>
         </div>
-        <textarea v-model="pageData.remark" placeholder="输入备注信息，100字以内" class="remark">
+        <textarea v-model="pageData.remark" maxlength="255" placeholder="输入备注信息，255字以内" class="remark">
     </textarea>
       </div>
       <div class="right-flex">

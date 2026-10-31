@@ -17,6 +17,9 @@ public interface UserService {
     User getUserByToken(String token);
     User getUserByUserName(String username);
 
+    // 退出登录（使指定令牌失效）
+    void logout(String token);
+
     User getUserDetail(Long userId);
     
     // 登录验证

@@ -66,8 +66,28 @@ public class OrderController {
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     @Transactional
     public APIResponse update(Order order) throws IOException {
-        service.updateOrder(order);
-        return new APIResponse(ResponeCode.SUCCESS, "更新成功");
+        try {
+            service.updateOrder(order);
+            return new APIResponse(ResponeCode.SUCCESS, "更新成功");
+        } catch (RuntimeException e) {
+            // 库存不足、优惠超额等业务校验失败，返回可读提示而非 500 错误
+            logger.warn("修改订单失败：{}", e.getMessage());
+            return new APIResponse(ResponeCode.FAIL, e.getMessage());
+        }
+    }
+
+    @Access(level = AccessLevel.ADMIN)
+    @RequestMapping(value = "/pay", method = RequestMethod.POST)
+    @Transactional
+    public APIResponse pay(Long id) {
+        try {
+            service.payOrder(id);
+            return new APIResponse(ResponeCode.SUCCESS, "标记支付成功");
+        } catch (RuntimeException e) {
+            // 状态不允许等业务校验失败，返回可读提示
+            logger.warn("标记支付失败：{}", e.getMessage());
+            return new APIResponse(ResponeCode.FAIL, e.getMessage());
+        }
     }
 
     @Access(level = AccessLevel.ADMIN)

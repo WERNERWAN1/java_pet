@@ -5,8 +5,10 @@
         <a-space>
           <a-input-search
               v-model:value="data.keyword"
-              placeholder="搜索宠物名称"
-              style="width: 250px;"
+              addon-before="宠物名称"
+              enter-button
+              placeholder="请输入"
+              style="width: 280px;"
               @search="handleSearch"
               allow-clear
           />

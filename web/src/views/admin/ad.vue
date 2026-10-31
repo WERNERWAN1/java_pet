@@ -82,6 +82,22 @@
                   <a-input placeholder="请输入" v-model:value="modal.form.link"/>
                 </a-form-item>
               </a-col>
+              <a-col span="24">
+                <a-form-item label="广告介绍" name="intro">
+                  <a-textarea placeholder="请输入广告介绍" :rows="2" v-model:value="modal.form.intro"/>
+                </a-form-item>
+              </a-col>
+              <a-col span="24">
+                <a-form-item label="失效时间" name="expireTime">
+                  <a-date-picker
+                      v-model:value="modal.form.expireTime"
+                      show-time
+                      value-format="YYYY-MM-DD HH:mm:ss"
+                      placeholder="不选择表示长期有效"
+                      style="width: 100%;"
+                  />
+                </a-form-item>
+              </a-col>
             </a-row>
           </a-form>
         </div>
@@ -97,10 +113,19 @@ import {BASE_URL} from "/@/store/constants";
 import {getFormatTime} from "/@/utils";
 import {FileImageOutlined} from '@ant-design/icons-vue';
 
+// 失效时间展示：为空表示长期有效，已过期的标记提示
+const formatExpireTime = (text: string) => {
+  if (!text) return '长期有效';
+  const timestamp = new Date(text.replace(/-/g, '/')).getTime();
+  return timestamp < Date.now() ? `${text}（已失效）` : text;
+};
+
 const columns = reactive([
   {title: '序号', dataIndex: 'index', key: 'index', align: 'center', width: 60},
   {title: '图片', dataIndex: 'imageUrl', key: 'imageUrl', align: 'center', width: 100},
   {title: '跳转链接', dataIndex: 'link', key: 'link', align: 'center'},
+  {title: '介绍', dataIndex: 'intro', key: 'intro', align: 'center', ellipsis: true},
+  {title: '失效时间', dataIndex: 'expireTime', key: 'expireTime', align: 'center', width: 200, customRender: ({text}) => formatExpireTime(text)},
   {title: '创建人', dataIndex: 'createByName', key: 'createByName', align: 'center', width: 100, customRender: ({text}) => text || '--'},
   {title: '创建时间', dataIndex: 'createTime', key: 'createTime', align: 'center', width: 170, customRender: ({text}) => getFormatTime(text, true) || '--'},
   {title: '修改人', dataIndex: 'updateByName', key: 'updateByName', align: 'center', width: 100, customRender: ({text}) => text || '--'},
@@ -141,7 +166,7 @@ const modal = reactive({
   visile: false,
   editFlag: false,
   title: '',
-  form: {id: undefined as any, image: undefined as any, imageFile: undefined as any, imageUrl: undefined as any, link: undefined as any},
+  form: {id: undefined as any, image: undefined as any, imageFile: undefined as any, imageUrl: undefined as any, link: undefined as any, intro: undefined as any, expireTime: undefined as any},
   rules: {link: [{required: true, message: '请输入', trigger: 'change'}]},
 });
 
@@ -213,6 +238,9 @@ const handleOk = () => {
     if (modal.form.imageFile) {
       formData.append('imageFile', modal.form.imageFile);
     }
+    formData.append('intro', modal.form.intro || '');
+    // 未选择失效时间时传空串，后端转化为 null 即长期有效
+    formData.append('expireTime', modal.form.expireTime || '');
     const api = modal.editFlag ? updateApi : createApi;
     api(formData).then(() => { hideModal(); getList(); }).catch((err) => { message.error(err.msg || '操作失败'); });
   }).catch(() => { console.log('不能为空'); });
@@ -225,6 +253,5 @@ const hideModal = () => { modal.visile = false; };
 
 <style scoped lang="less">
 .page-view { min-height: 100%; background: #fff; padding: 24px; display: flex; flex-direction: column; }
-.table-operations { margin-bottom: 16px; text-align: right; }
-.table-operations > button { margin-right: 8px; }
+.table-operations { margin-bottom: 16px; display: flex; justify-content: flex-start; gap: 8px; }
 </style>

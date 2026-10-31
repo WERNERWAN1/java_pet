@@ -88,7 +88,14 @@ const handleUpdatePwd = () => {
     password: password.value,
     newPassword: newPassword1.value,
   }).then(res => {
-    message.success('修改成功')
+    // 改密后后端会使旧令牌失效，需重新登录
+    message.success('修改成功，请重新登录')
+    password.value = ''
+    newPassword1.value = ''
+    newPassword2.value = ''
+    userStore.logout().then(() => {
+      router.push({name: 'login'})
+    })
   }).catch(err => {
     message.error(err.msg)
   })

@@ -57,4 +57,22 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
     public void deleteRoom(Integer id) {
         roomMapper.deleteById(id);
     }
+
+    @Override
+    public void clearRoom(Long id) {
+        if (id == null) {
+            throw new RuntimeException("房间ID不能为空");
+        }
+        Room existing = roomMapper.selectById(id);
+        if (existing == null) {
+            throw new RuntimeException("房间不存在");
+        }
+        // animal 与 animalPhoto 已配置 FieldStrategy.IGNORED，置 null 会真正写入库，实现清空
+        Room room = new Room();
+        room.setId(id);
+        room.setStatus(1);
+        room.setAnimal(null);
+        room.setAnimalPhoto(null);
+        roomMapper.updateById(room);
+    }
 }

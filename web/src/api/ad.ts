@@ -2,6 +2,7 @@ import {get, post} from '/@/utils/http/axios';
 
 enum URL {
     userList = '/api/ad/list',
+    validList = '/api/ad/listValid',
     create = '/api/ad/create',
     update = '/api/ad/update',
     delete = '/api/ad/delete',
@@ -9,6 +10,9 @@ enum URL {
 
 const listApi = async (params: any) =>
     get<any>({url: URL.userList, params: params, data: {}, headers: {}});
+// 前台展示：仅拉取未过失效时间的广告
+const listValidApi = async (params: any) =>
+    get<any>({url: URL.validList, params: params, data: {}, headers: {}});
 const createApi = async (data: any) =>
     post<any>({
         url: URL.create,
@@ -25,4 +29,4 @@ const updateApi = async (data: any) =>
 const deleteApi = async (params: any) =>
     post<any>({url: URL.delete, params: params, headers: {}});
 
-export {listApi, createApi, updateApi, deleteApi};
+export {listApi, listValidApi, createApi, updateApi, deleteApi};

@@ -11,4 +11,8 @@ public interface OrderService {
     void updateOrder(Order order);
     List<Order> getUserOrderList(String userId, String status);
     void cancelOrder(Long orderId);
+    /**
+     * 管理端将待支付订单标记为已支付，并记录支付时间
+     */
+    void payOrder(Long orderId);
 }

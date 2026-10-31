@@ -45,6 +45,15 @@ public class AdController {
         return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
     }
 
+    /**
+     * 前台展示：仅返回未超过失效时间的广告
+     */
+    @RequestMapping(value = "/listValid", method = RequestMethod.GET)
+    public APIResponse listValid(){
+        List<Ad> list =  service.getValidAdList();
+        return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
+    }
+
     @Access(level = AccessLevel.ADMIN)
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @Transactional

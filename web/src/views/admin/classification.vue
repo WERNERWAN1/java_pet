@@ -4,6 +4,15 @@
     <div class="page-view">
       <div class="table-operations">
         <a-space>
+          <a-input-search
+              v-model:value="data.keyword"
+              addon-before="分类名称"
+              enter-button
+              placeholder="请输入"
+              style="width: 280px;"
+              @search="handleSearch"
+              allow-clear
+          />
           <a-button type="primary" @click="handleAdd">新增</a-button>
           <a-button @click="handleBatchDelete">批量删除</a-button>
         </a-space>
@@ -74,6 +83,13 @@ import { getFormatTime } from '/@/utils';
 
 const columns = reactive([
   {
+    title: '序号',
+    dataIndex: 'index',
+    key: 'index',
+    align: 'center',
+    width: 60
+  },
+  {
     title: '分类名称',
     dataIndex: 'title',
     key: 'title',
@@ -138,8 +154,8 @@ const modal = reactive({
   editFlag: false,
   title: '',
   form: {
-    key: undefined,
-    title: undefined,
+    id: undefined as any,
+    title: undefined as any,
   },
   rules: {
     title: [{ required: true, message: '请输入', trigger: 'change' }],
@@ -160,15 +176,22 @@ const getDataList = () => {
       .then((res) => {
         data.loading = false;
         console.log(res);
-        res.data.forEach((item: any, index: any) => {
+        const list = res.data || [];
+        list.forEach((item: any, index: any) => {
           item.index = index + 1;
         });
-        data.userList = res.data;
+        data.userList = list;
+        data.page = 1;
       })
       .catch((err) => {
         data.loading = false;
         console.log(err);
       });
+};
+
+// 查询
+const handleSearch = () => {
+  getDataList();
 };
 
 const rowSelection = ref({
@@ -184,23 +207,17 @@ const handleAdd = () => {
   modal.editFlag = false;
   modal.title = '新增';
   // 重置
-  for (const key in modal.form) {
-    modal.form[key] = undefined;
-  }
+  modal.form.id = undefined;
+  modal.form.title = undefined;
 };
 const handleEdit = (record: any) => {
   resetModal();
   modal.visile = true;
   modal.editFlag = true;
   modal.title = '编辑';
-  // 重置
-  for (const key in modal.form) {
-    modal.form[key] = undefined;
-  }
-  for (const key in record) {
-    modal.form[key] = record[key];
-  }
-
+  // 仅回填表单字段，避免把旧的审计字段提交给后端导致修改时间不更新
+  modal.form.id = record.id;
+  modal.form.title = record.title;
 };
 
 const confirmDelete = (record: any) => {
@@ -291,10 +308,8 @@ const hideModal = () => {
 
 .table-operations {
   margin-bottom: 16px;
-  text-align: right;
-}
-
-.table-operations > button {
-  margin-right: 8px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
 }
 </style>
